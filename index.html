@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monix | Premium FinTech Intelligence</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f4f7fb; color: #0f172a; min-height: 100vh; overflow-x: hidden; scroll-behavior: smooth; }
+        
+        .bg-mesh {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+            background: radial-gradient(circle at 10% 40%, rgba(124, 58, 237, 0.08), transparent 30%),
+                        radial-gradient(circle at 90% 20%, rgba(236, 72, 153, 0.08), transparent 30%),
+                        radial-gradient(circle at 50% 90%, rgba(14, 165, 233, 0.08), transparent 30%);
+            background-color: #f8fafc; filter: blur(50px);
+        }
+
+        .spatial-card { 
+            background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+            border-radius: 32px; transition: box-shadow 0.4s ease, transform 0.1s out;
+            transform-style: preserve-3d;
+        }
+        
+        .list-row { background: transparent; border-bottom: 1px solid rgba(0,0,0,0.03); transition: all 0.2s ease; }
+        .list-row:hover { background: rgba(255,255,255,0.9); border-radius: 16px; transform: scale(1.005); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.02); }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .glass-dock {
+            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px);
+            border: 1px solid rgba(255, 255, 255, 1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+        }
+
+        .nav-item.active { color: #7c3aed; }
+        .nav-item.active i { transform: translateY(-2px); color: #7c3aed; }
+
+        .toggle-checkbox:checked { right: 0; border-color: #ef4444; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #ef4444; }
+        .toggle-checkbox:checked + .toggle-label:before { transform: translateX(100%); }
+        .roast-active { background: linear-gradient(135deg, rgba(254,242,242,0.9) 0%, rgba(255,241,242,0.9) 100%); border-color: #fecdd3 !important; }
+        
+        .app-view { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="relative pb-32">
+
+    <div class="bg-mesh"></div>
+
+    <div id="navDock" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 glass-dock rounded-full px-6 py-3 hidden items-center gap-8 w-max transition-all duration-500">
+        <div class="flex items-center gap-2 pr-6 border-r border-slate-200">
+            <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-violet-500/30">M</div>
+        </div>
+        
+        <button onclick="switchView('dash')" id="nav-dash" class="nav-item group flex flex-col items-center gap-1 text-slate-400 hover:text-violet-600 transition active:scale-95">
+            <i class="fas fa-layer-group text-lg transition-transform"></i>
+            <span class="text-[9px] font-bold uppercase tracking-widest">Dash</span>
+        </button>
+        
+        <button onclick="switchView('ledger')" id="nav-ledger" class="nav-item group flex flex-col items-center gap-1 text-slate-400 hover:text-violet-600 transition active:scale-95">
+            <i class="fas fa-receipt text-lg transition-transform"></i>
+            <span class="text-[9px] font-bold uppercase tracking-widest">Ledger</span>
+        </button>
+
+        <div class="relative -top-6 mx-2">
+            <button onclick="document.getElementById('pdfFile').click()" class="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center text-white shadow-2xl shadow-slate-900/40 hover:scale-110 active:scale-95 hover:bg-violet-600 transition-all duration-300 ring-4 ring-white/60">
+                <i class="fas fa-cloud-upload-alt text-2xl"></i>
+            </button>
+        </div>
+
+        <button onclick="switchView('goals')" id="nav-goals" class="nav-item group flex flex-col items-center gap-1 text-slate-400 hover:text-violet-600 transition relative active:scale-95">
+            <i class="fas fa-bullseye text-lg transition-transform"></i>
+            <span class="text-[9px] font-bold uppercase tracking-widest">Goals</span>
+        </button>
+
+        <div class="pl-6 border-l border-slate-200">
+            <button onclick="switchView('profile')" id="nav-profile" class="nav-item group flex flex-col items-center gap-1 text-slate-400 hover:text-violet-600 transition active:scale-95">
+                <i class="far fa-user text-lg transition-transform"></i>
+                <span class="text-[9px] font-bold uppercase tracking-widest">Profile</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="fixed top-6 right-6 z-50">
+        <p id="statusMsg" class="text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full shadow-lg border border-white hidden transition-all"></p>
+    </div>
+
+    <div class="pt-12 px-4 md:px-8 max-w-[1200px] mx-auto relative min-h-[80vh]">
+        
+        <div id="loginSection" class="max-w-md mx-auto spatial-card p-10 mt-10 relative overflow-hidden" style="display: none;">
+            <div class="absolute -right-20 -top-20 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl"></div>
+            <div class="text-center mb-8 relative z-10">
+                <div class="w-20 h-20 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl flex items-center justify-center text-white mb-6 mx-auto shadow-2xl shadow-slate-900/20">
+                    <span class="text-4xl font-black">M</span>
+                </div>
+                <h2 id="formTitle" class="text-3xl font-black text-slate-800 tracking-tight">Monix Secure</h2>
+                <p class="text-slate-500 text-sm font-medium mt-2">Next-Gen Financial Intelligence</p>
+            </div>
+
+            <div class="space-y-5 relative z-10">
+                <input type="email" id="emailInput" placeholder="Email address" class="w-full bg-white/60 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition shadow-inner">
+                <input type="password" id="passwordInput" placeholder="Password" class="w-full bg-white/60 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition shadow-inner">
+                <button id="actionBtn" onclick="handleAuth()" class="w-full mt-2 bg-slate-900 text-white font-bold rounded-2xl py-4 hover:bg-violet-600 active:scale-95 transition-all shadow-xl shadow-slate-900/20">Sign In</button>
+            </div>
+
+            <div class="mt-6 flex justify-center">
+                <div class="inline-flex items-center gap-2 bg-emerald-50/80 text-emerald-600 px-4 py-2 rounded-full text-[10px] font-bold border border-emerald-100">
+                    <i class="fas fa-shield-alt"></i> 256-bit AES Encryption
+                </div>
+            </div>
+
+            <div class="mt-6 text-center relative z-10">
+                <p class="text-sm font-medium text-slate-500"><span id="toggleText">New to Monix?</span> <button onclick="toggleMode()" class="text-violet-600 font-bold hover:underline ml-1" id="toggleBtn">Create Account</button></p>
+            </div>
+        </div>
+
+        <input type="file" id="pdfFile" class="hidden" accept=".pdf" onchange="updateFileName(); processPDF();">
+
+        <div id="emptyDashboardState" style="display: none;" class="text-center py-32 spatial-card mt-10 max-w-3xl mx-auto app-view">
+            <div class="w-32 h-32 bg-white/70 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner border border-white">
+                <i class="fas fa-layer-group text-5xl text-violet-400"></i>
+            </div>
+            <h2 class="text-4xl font-black text-slate-800 tracking-tight mb-4">Your Financial Canvas is Empty</h2>
+            <p class="text-slate-500 font-medium mb-8 max-w-md mx-auto text-lg">Click the central black button below to upload your first bank statement PDF.</p>
+            <div class="inline-flex items-center gap-2 bg-slate-100/80 text-slate-500 px-5 py-2.5 rounded-full text-xs font-bold border border-slate-200">
+                <i class="fas fa-lock text-emerald-500"></i> Saved securely to Cloud Firestore.
+            </div>
+        </div>
+
+        <div id="mainAppContainer" style="display: none;">
+
+            <div id="view-dash" class="app-view" style="display: block;">
+                <div class="mb-10 pl-2">
+                    <h1 class="text-5xl font-black tracking-tight text-slate-800">Overview</h1>
+                    <p class="text-slate-500 font-medium mt-2 flex items-center gap-2"><i class="fas fa-sparkles text-violet-500"></i> Core Financial Metrics</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+                    <div class="spatial-card p-6 flex flex-col items-center justify-center relative h-[240px]">
+                        <h3 class="absolute top-5 left-5 text-slate-400 font-bold uppercase tracking-widest text-[10px]">Monix Health</h3>
+                        <div class="relative w-32 h-32 flex items-center justify-center mt-4">
+                            <svg class="absolute inset-0 w-full h-full transform -rotate-90">
+                                <circle cx="64" cy="64" r="54" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-100/50" />
+                                <circle id="healthCircle" cx="64" cy="64" r="54" stroke="currentColor" stroke-width="12" fill="transparent" stroke-dasharray="339" stroke-dashoffset="0" class="text-emerald-400 transition-all duration-1000 ease-out" stroke-linecap="round" />
+                            </svg>
+                            <div class="text-center z-10">
+                                <span class="text-4xl font-black text-slate-800" id="healthScoreText">0</span>
+                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1" id="healthScoreLabel">Excellent</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="spatial-card p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-none text-white relative overflow-hidden h-[240px] flex flex-col justify-between">
+                        <div class="absolute -right-10 -bottom-10 text-white/5 text-8xl"><i class="fas fa-wallet"></i></div>
+                        <div class="z-10">
+                            <h3 class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-1">Total Spending</h3>
+                            <p class="text-4xl font-black tracking-tighter" id="totalExp">₹0</p>
+                        </div>
+                        <div class="z-10">
+                            <h3 class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-1">Total Income</h3>
+                            <p class="text-xl font-bold text-emerald-400 tracking-tight" id="totalInc">₹0</p>
+                        </div>
+                    </div>
+
+                    <div class="spatial-card p-6 bg-gradient-to-b from-white/70 to-emerald-50/70 border-emerald-100/50 h-[240px] overflow-hidden flex flex-col">
+                        <h3 class="text-emerald-600 font-extrabold text-base mb-1 flex items-center gap-2"><i class="fas fa-radar text-amber-400"></i> Predictive AI</h3>
+                        <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-4">Upcoming Bills Next Month</p>
+                        <div id="predictionsList" class="space-y-3 overflow-y-auto pr-2 custom-scrollbar"></div>
+                    </div>
+                </div>
+
+                <div class="spatial-card p-8 mb-8">
+                    <h3 class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-6 flex items-center gap-2"><i class="fas fa-fire-alt text-orange-500"></i> Spending Alerts</h3>
+                    <div id="budgetBarsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
+                </div>
+            </div>
+
+            <div id="view-ledger" class="app-view" style="display: none;">
+                <div class="mb-10 pl-2">
+                    <h1 class="text-5xl font-black tracking-tight text-slate-800">Ledger</h1>
+                    <p class="text-slate-500 font-medium mt-2">Your complete transaction history.</p>
+                </div>
+
+                <div class="spatial-card overflow-hidden">
+                    <div class="p-6 border-b border-slate-100/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40">
+                        <div class="p-2 bg-white/60 border border-slate-100 overflow-x-auto whitespace-nowrap flex gap-2 rounded-2xl w-full md:w-auto" id="calendarStrip"></div>
+                        
+                        <div class="relative w-full md:w-72">
+                            <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                            <input type="text" id="liveSearch" onkeyup="filterTable()" placeholder="Search records..." class="w-full bg-white/80 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-violet-500 transition shadow-inner">
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto w-full p-2">
+                        <table class="w-full text-left border-collapse min-w-[600px]">
+                            <thead>
+                                <tr class="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+                                    <th class="px-6 py-4">Date</th>
+                                    <th class="px-6 py-4">Description</th>
+                                    <th class="px-6 py-4">AI Tag</th>
+                                    <th class="px-6 py-4 text-right">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody class="text-sm font-medium text-slate-600" id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-goals" class="app-view" style="display: none;">
+                <div class="mb-10 pl-2">
+                    <h1 class="text-5xl font-black tracking-tight text-slate-800">Intelligence</h1>
+                    <p class="text-slate-500 font-medium mt-2">AI Advisor, Goals, and Breakdown.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
+                    <div class="lg:col-span-6 spatial-card p-8 flex flex-col transition-colors duration-500 h-[450px]" id="chatContainerWrapper">
+                        <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100/50">
+                            <h3 class="text-slate-800 font-extrabold text-xl flex items-center gap-3">
+                                <div class="w-10 h-10 bg-violet-100 rounded-2xl flex items-center justify-center text-violet-600 shadow-inner" id="chatBotIcon"><i class="fas fa-brain text-lg"></i></div>
+                                Advisor AI
+                            </h3>
+                            
+                            <div class="flex items-center gap-3 bg-white/60 px-3 py-1.5 rounded-full border border-white">
+                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest" id="roastLabel">Roast Mode</span>
+                                <div class="relative inline-block w-8 align-middle select-none transition duration-200 ease-in">
+                                    <input type="checkbox" id="roastToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 border-slate-300 appearance-none cursor-pointer transition-transform duration-300" onchange="toggleRoastMode()"/>
+                                    <label for="roastToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="chatHistory" class="flex-grow bg-white/50 rounded-3xl p-5 mb-4 overflow-y-auto space-y-4 shadow-inner border border-white">
+                            <div class="flex gap-4">
+                                <div class="w-8 h-8 bg-violet-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-violet-500/30" id="aiAvatarColor">AI</div>
+                                <div class="bg-white text-slate-700 p-3 rounded-2xl rounded-tl-none text-sm font-medium shadow-sm border border-slate-100" id="welcomeMessage">
+                                    I've reviewed your summary. Ask me anything!
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex gap-3 relative">
+                            <input type="text" id="chatInput" placeholder="Ask for financial advice..." class="flex-grow bg-white/80 border border-slate-200 rounded-full pl-5 pr-24 py-3.5 outline-none focus:border-violet-500 transition text-sm font-medium shadow-sm backdrop-blur-sm" onkeypress="handleEnter(event)">
+                            <button onclick="askAI()" id="askBtn" class="absolute right-1.5 top-1.5 bottom-1.5 bg-slate-900 hover:bg-violet-600 text-white px-6 rounded-full font-bold transition-colors shadow-md text-sm active:scale-95">Send</button>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-6 space-y-6">
+                        <div class="spatial-card p-6 flex items-center justify-between">
+                            <div class="w-1/2">
+                                <h3 class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-4">Spending Chart</h3>
+                                <div class="w-full h-[160px] relative"><canvas id="myChart"></canvas></div>
+                            </div>
+                            <div class="w-1/2 pl-4 max-h-[200px] overflow-y-auto space-y-2 pr-2" id="categoryBoxes"></div>
+                        </div>
+
+                        <div class="spatial-card p-6 bg-gradient-to-br from-white/70 to-rose-50/70 border-rose-100/50">
+                            <h3 class="text-rose-600 font-extrabold text-base mb-3 flex items-center gap-2"><i class="fas fa-ghost text-rose-400"></i> Active Subscriptions</h3>
+                            <div id="subscriptionsList" class="grid grid-cols-1 gap-2 max-h-[120px] overflow-y-auto pr-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="spatial-card p-8 bg-gradient-to-br from-white/70 to-sky-50/70 border-sky-100/50 relative overflow-hidden mb-8">
+                    <div class="absolute -right-10 -top-10 text-sky-500/5 text-9xl"><i class="fas fa-bullseye"></i></div>
+                    <h3 class="text-sky-600 font-extrabold text-xl mb-6 relative z-10">Smart Goal Planner</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 relative z-10">
+                        <input type="text" id="goalName" placeholder="What are you saving for? (e.g., Car)" class="w-full bg-white/90 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-500 font-bold text-slate-700 shadow-inner">
+                        <input type="number" id="goalAmount" placeholder="Amount (₹)" class="w-full bg-white/90 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-500 font-black text-slate-800 shadow-inner">
+                        <input type="number" id="goalMonths" placeholder="Months" class="w-full bg-white/90 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-500 font-black text-slate-800 shadow-inner">
+                    </div>
+                    <button onclick="calculateGoal()" class="w-full bg-sky-500 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-sky-600 active:scale-[0.99] transition shadow-lg shadow-sky-500/20 relative z-10">Generate Plan</button>
+                    
+                    <div id="goalResult" class="bg-white/90 rounded-2xl p-5 border border-sky-100 shadow-sm mt-4 hidden relative z-10 backdrop-blur-md">
+                        <p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">Monthly Target</p>
+                        <p class="text-3xl font-black text-slate-800 tracking-tight mb-2" id="goalMonthlyAmount">₹0</p>
+                        <p class="text-xs text-slate-600 font-medium leading-relaxed" id="goalAdvice"></p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="view-profile" class="app-view" style="display: none;">
+                <div class="mb-10 pl-2">
+                    <h1 class="text-5xl font-black tracking-tight text-slate-800">Profile</h1>
+                    <p class="text-slate-500 font-medium mt-2">Manage your account and preferences.</p>
+                </div>
+
+                <div class="max-w-2xl mx-auto spatial-card p-10">
+                    <div class="flex items-center gap-6 mb-8 pb-8 border-b border-slate-100/50">
+                        <div class="w-24 h-24 bg-gradient-to-br from-violet-100 to-fuchsia-100 rounded-full flex items-center justify-center text-violet-500 text-4xl shadow-inner border-4 border-white"><i class="far fa-user"></i></div>
+                        <div>
+                            <h2 class="text-2xl font-black text-slate-800" id="profileEmailDisplay">user@monix.com</h2>
+                            <p class="text-sm font-bold text-emerald-500 bg-emerald-50 px-3 py-1 rounded-md inline-block mt-2 border border-emerald-100">Verified Member</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-5 mb-8">
+                        <div class="grid grid-cols-2 gap-5">
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">First Name</label>
+                                <input type="text" placeholder="Your Name" class="w-full bg-white/60 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-violet-500 transition shadow-inner">
+                            </div>
+                            <div>
+                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Occupation</label>
+                                <input type="text" placeholder="e.g. Software Engineer" class="w-full bg-white/60 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-violet-500 transition shadow-inner">
+                            </div>
+                        </div>
+                        <button class="w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl text-sm hover:bg-slate-200 active:scale-[0.99] transition">Save Details</button>
+                    </div>
+
+                    <div class="pt-8 border-t border-slate-100/50 flex justify-between items-center">
+                        <button onclick="clearHistory()" class="text-sm font-bold text-slate-500 hover:text-rose-500 transition flex items-center gap-2"><i class="fas fa-trash"></i> Reset Data</button>
+                        <button onclick="logoutUser()" class="bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white font-bold py-3 px-8 rounded-xl text-sm transition shadow-sm flex items-center gap-2 active:scale-95"><i class="fas fa-power-off"></i> Logout</button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+// ==========================================
+// 🚀 PREMIUM 3D TILT PHYSICS
+// ==========================================
+function initTiltEffect() {
+    const cards = document.querySelectorAll('.spatial-card');
+    cards.forEach(card => {
+        card.addEventListener('mousemove', e => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+            const rotateX = ((y - centerY) / centerY) * -4; 
+            const rotateY = ((x - centerX) / centerX) * 4;
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        });
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = `perspective(1000px) rotateX(0) rotateY(0)`;
+        });
+    });
+}
+document.addEventListener('DOMContentLoaded', initTiltEffect);
+
+// ==========================================
+// 🔥 FIREBASE & FIRESTORE INITIALIZATION
+// ==========================================
+const firebaseConfig = {
+    apiKey: "AIzaSyC173uyOYugWgjM1cPvcw04iK_bprzHZIY",
+    authDomain: "monix-c9216.firebaseapp.com",
+    projectId: "monix-c9216",
+    storageBucket: "monix-c9216.firebasestorage.app",
+    messagingSenderId: "167469208341",
+    appId: "1:167469208341:web:15011c240fecbfbb55cf1c"
+};
+
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const db = firebase.firestore(); // 🌟 Initialize Firestore!
+
+let isLoginMode = true; 
+let chartObj = null;
+let globalTransactions = []; 
+let allTimeTransactions = []; 
+let currentIncome = 0;
+let currentSpend = 0;
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('navDock').style.display = 'flex'; 
+        document.getElementById('profileEmailDisplay').innerText = user.email; 
+        fetchHistory(); // 🌟 Automatically pull from Firestore on login
+    } else {
+        document.getElementById('loginSection').style.display = 'block';
+        document.getElementById('mainAppContainer').style.display = 'none';
+        document.getElementById('emptyDashboardState').style.display = 'none';
+        document.getElementById('navDock').style.display = 'none'; 
+    }
+});
+
+function switchView(viewName) {
+    if (allTimeTransactions.length === 0 && viewName !== 'profile') {
+        document.getElementById('mainAppContainer').style.display = "none";
+        document.getElementById('emptyDashboardState').style.display = "block";
+        return;
+    }
+
+    document.getElementById('emptyDashboardState').style.display = "none";
+    document.getElementById('mainAppContainer').style.display = "block";
+
+    ['dash', 'ledger', 'goals', 'profile'].forEach(v => {
+        document.getElementById('view-' + v).style.display = 'none';
+    });
+
+    document.getElementById('view-' + viewName).style.display = 'block';
+
+    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-violet-600'));
+    const activeBtn = document.getElementById('nav-' + viewName);
+    if(activeBtn) activeBtn.classList.add('active', 'text-violet-600');
+
+    window.scrollTo(0,0);
+}
+
+function toggleMode() {
+    isLoginMode = !isLoginMode;
+    document.getElementById('formTitle').innerText = isLoginMode ? "Monix Secure" : "Create Account";
+    document.getElementById('actionBtn').innerText = isLoginMode ? "Sign In" : "Sign Up";
+    document.getElementById('toggleText').innerText = isLoginMode ? "Don't have an account?" : "Already have an account?";
+    document.getElementById('toggleBtn').innerText = isLoginMode ? "Sign Up" : "Sign In";
+}
+
+function handleAuth() {
+    const email = document.getElementById('emailInput').value;
+    const password = document.getElementById('passwordInput').value;
+    if(!email || !password) return updateMsg("Enter email/password", "text-rose-500");
+    if (isLoginMode) auth.signInWithEmailAndPassword(email, password).catch(e => updateMsg(e.message, "text-rose-500"));
+    else auth.createUserWithEmailAndPassword(email, password).catch(e => updateMsg(e.message, "text-rose-500"));
+}
+
+function logoutUser() { auth.signOut(); }
+
+function updateFileName() {
+    const file = document.getElementById('pdfFile').files[0];
+    if(file) updateMsg("File selected. Scanning...", "text-violet-500");
+}
+
+function updateMsg(txt, colorClass) {
+    const s = document.getElementById('statusMsg');
+    s.textContent = txt;
+    s.className = `text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full shadow-lg border border-white transition-all ${colorClass}`;
+    s.style.display = "block";
+    setTimeout(() => { s.style.display = "none"; }, 4000);
+}
+
+// ==========================================
+// ☁️ CLOUD DATA INTEGRATION
+// ==========================================
+async function processPDF() {
+    const file = document.getElementById('pdfFile').files[0];
+    const user = auth.currentUser;
+
+    if(!user) return updateMsg("Please log in first", "text-rose-500");
+    if(!file) return updateMsg("Select a file first", "text-rose-500");
+    if(file.type !== "application/pdf") return updateMsg("⚠️ Error: PDF only!", "text-rose-500"); 
+
+    const formData = new FormData();
+    formData.append('pdfFile', file);
+    updateMsg("AI Scanning Document...", "text-violet-500 animate-pulse");
+
+    try {
+        // 1. Let Node.js Backend process the PDF via Gemini
+        const res = await fetch('https://monix-backend-xyz.onrender.com/upload', { method: 'POST', body: formData });
+        if (!res.ok) throw new Error("Server Error");
+        const parsedData = await res.json();
+
+        // 2. Append new data to existing Firestore data
+        const docRef = db.collection('users').doc(user.uid);
+        const doc = await docRef.get();
+        let existingData = doc.exists ? (doc.data().transactions || []) : [];
+        let combinedData = [...existingData, ...parsedData];
+
+        // 3. Save securely to Cloud Firestore under User ID
+        await docRef.set({ transactions: combinedData, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
+
+        // 4. Update UI
+        allTimeTransactions = combinedData;
+        renderData(allTimeTransactions);
+        switchView('dash'); 
+        updateMsg("Saved Securely to Cloud", "text-emerald-500");
+
+    } catch (e) { 
+        console.error(e);
+        updateMsg("Error parsing PDF", "text-rose-500"); 
+    }
+}
+
+async function fetchHistory() {
+    const user = auth.currentUser;
+    if(!user) return;
+
+    updateMsg("Loading Secure Cloud Data...", "text-sky-500 animate-pulse");
+    try {
+        // 🌟 Pull directly from Cloud Firestore based on User ID!
+        const doc = await db.collection('users').doc(user.uid).get();
+        
+        if (doc.exists && doc.data().transactions && doc.data().transactions.length > 0) {
+            allTimeTransactions = doc.data().transactions;
+            renderData(allTimeTransactions);
+            switchView('dash'); 
+            updateMsg("Dashboard Ready", "text-emerald-500");
+        } else {
+            allTimeTransactions = [];
+            switchView('dash'); 
+        }
+    } catch (e) { 
+        console.error(e);
+        switchView('dash'); 
+        updateMsg("Cloud Connection Error", "text-rose-500"); 
+    }
+}
+
+async function clearHistory() {
+    const user = auth.currentUser;
+    if(!user) return;
+
+    if(!confirm("Are you sure you want to permanently delete your data?")) return;
+    try {
+        // 🌟 Delete from Cloud Firestore
+        await db.collection('users').doc(user.uid).delete();
+        allTimeTransactions = []; 
+        switchView('dash'); 
+        updateMsg("Cloud Data Erased", "text-slate-500");
+    } catch (e) {}
+}
+
+// ==========================================
+// AI FETCH CALLS (Passing History to Backend)
+// ==========================================
+async function askAI() {
+    const inputField = document.getElementById('chatInput');
+    const question = inputField.value.trim();
+    if(!question) return;
+
+    const chatHistory = document.getElementById('chatHistory');
+    chatHistory.innerHTML += `
+        <div class="flex gap-3 justify-end">
+            <div class="${isRoastMode ? 'bg-red-500 shadow-red-500/30' : 'bg-slate-900 shadow-slate-900/30'} text-white p-3 rounded-2xl rounded-tr-none text-xs font-medium max-w-[80%] shadow-md">${question}</div>
+            <div class="w-8 h-8 bg-slate-200 rounded-full flex-shrink-0 flex items-center justify-center text-slate-600 text-[10px] font-bold shadow-inner">You</div>
+        </div>
+    `;
+    inputField.value = '';
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+    const typingId = 'typing-' + Date.now();
+    chatHistory.innerHTML += `
+        <div id="${typingId}" class="flex gap-3">
+            <div class="w-8 h-8 ${isRoastMode ? 'bg-red-500 shadow-red-500/30' : 'bg-violet-500 shadow-violet-500/30'} rounded-full flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold shadow-md">AI</div>
+            <div class="bg-white text-slate-500 p-3 rounded-2xl rounded-tl-none text-xs font-medium max-w-[80%] flex items-center gap-1 shadow-sm border border-slate-100">
+                <i class="fas fa-circle text-[4px] animate-bounce"></i>
+                <i class="fas fa-circle text-[4px] animate-bounce" style="animation-delay: 0.1s"></i>
+                <i class="fas fa-circle text-[4px] animate-bounce" style="animation-delay: 0.2s"></i>
+            </div>
+        </div>
+    `;
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+
+    let finalQuestion = question;
+    if(isRoastMode) finalQuestion += " (Reply to this in a highly sarcastic, roasting, and slightly mean tone pointing out bad spending habits. Keep it short.)";
+
+    try {
+        // 🌟 Send both the Question AND the User's History to the Stateless Backend
+        const res = await fetch('http://localhost:3000/chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ question: finalQuestion, history: allTimeTransactions })
+        });
+        const data = await res.json();
+        
+        document.getElementById(typingId).remove();
+        chatHistory.innerHTML += `
+            <div class="flex gap-3">
+                <div class="w-8 h-8 ${isRoastMode ? 'bg-red-500 shadow-red-500/30' : 'bg-violet-500 shadow-violet-500/30'} rounded-full flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold shadow-md">AI</div>
+                <div class="bg-white text-slate-700 p-3 rounded-2xl rounded-tl-none text-xs font-medium max-w-[80%] shadow-sm border border-slate-100 leading-relaxed">
+                    ${data.answer}
+                </div>
+            </div>
+        `;
+        chatHistory.scrollTop = chatHistory.scrollHeight;
+    } catch (e) {
+        document.getElementById(typingId).remove();
+        chatHistory.innerHTML += `<div class="text-rose-500 text-[10px] text-center mt-2">Error connecting to AI.</div>`;
+    }
+}
+
+async function fetchPredictions() {
+    const list = document.getElementById('predictionsList');
+    try {
+        // 🌟 Send User's History to the Stateless Backend
+        const res = await fetch('http://localhost:3000/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ history: allTimeTransactions })
+        });
+        const preds = await res.json();
+        list.innerHTML = "";
+        if(preds.length === 0) return list.innerHTML = `<p class="text-xs text-slate-500 font-medium italic mt-2">Need more data to predict.</p>`;
+        preds.forEach(p => {
+            list.innerHTML += `
+            <div class="flex justify-between items-center bg-white/80 p-3 rounded-2xl shadow-sm border border-emerald-100">
+                <span class="font-bold text-slate-700 text-xs truncate max-w-[60%]">${p.name}</span>
+                <span class="font-black text-rose-500 text-xs bg-rose-50 px-2 py-0.5 rounded-md">-₹${p.amount.toLocaleString('en-IN')}</span>
+            </div>`;
+        });
+    } catch (e) { list.innerHTML = `<p class="text-[10px] font-bold text-rose-500 mt-2">Failed to load AI predictions.</p>`; }
+}
+
+// ==========================================
+// CORE RENDERING (Remaining logic unchanged)
+// ==========================================
+function renderData(transactions) {
+    globalTransactions = transactions; 
+    currentSpend = 0; currentIncome = 0; let cats = {};
+
+    transactions.forEach(t => {
+        if (typeof t.amount !== 'number' || isNaN(t.amount)) return;
+        if(t.amount < 0) {
+            currentSpend += Math.abs(t.amount);
+            cats[t.category || 'Other'] = (cats[t.category || 'Other'] || 0) + Math.abs(t.amount);
+        } else { currentIncome += t.amount; }
+    });
+
+    document.getElementById('totalExp').textContent = `₹${currentSpend.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+    document.getElementById('totalInc').textContent = `₹${currentIncome.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
+    renderHealthScore(currentIncome, currentSpend);
+
+    const catContainer = document.getElementById('categoryBoxes');
+    catContainer.innerHTML = ""; 
+    const sortedCats = Object.entries(cats).sort((a, b) => b[1] - a[1]);
+    
+    renderBudgetBars(sortedCats, currentSpend);
+    detectSubscriptions(transactions);
+
+    const bgColors = ['bg-rose-50', 'bg-sky-50', 'bg-amber-50', 'bg-emerald-50', 'bg-violet-50'];
+    const textColors = ['text-rose-600', 'text-sky-600', 'text-amber-600', 'text-emerald-600', 'text-violet-600'];
+    const chartHex = ['#f43f5e', '#0ea5e9', '#f59e0b', '#10b981', '#8b5cf6'];
+
+    sortedCats.forEach(([categoryName, totalSpent], index) => {
+        const percentage = Math.round((totalSpent / currentSpend) * 100) || 0;
+        const text = textColors[index % textColors.length];
+        
+        catContainer.innerHTML += `
+            <div class="p-3 bg-white/60 rounded-xl border border-white shadow-sm flex justify-between items-center">
+                <h5 class="${text} text-[10px] font-black uppercase tracking-widest truncate">${categoryName}</h5>
+                <p class="text-sm font-black text-slate-800 tracking-tight">₹${totalSpent.toLocaleString('en-IN')}</p>
+            </div>
+        `;
+    });
+
+    initChart(cats, chartHex);
+    fetchPredictions();
+    buildCalendarStrip(transactions);
+    renderTable(transactions);
+}
+
+function renderHealthScore(income, spend) {
+    let score = 0;
+    if (income === 0 && spend > 0) score = 20; 
+    else if (income > 0) score = Math.max(10, Math.min(100, Math.round(100 - ((spend / income) * 100))));
+    
+    let label = "Excellent"; let color = "text-emerald-400";
+    if(score < 40) { label = "Warning"; color = "text-rose-400"; }
+    else if(score < 70) { label = "Fair"; color = "text-amber-400"; }
+
+    document.getElementById('healthScoreText').innerText = score;
+    document.getElementById('healthScoreLabel').innerText = label;
+    document.getElementById('healthScoreLabel').className = `text-[9px] font-bold uppercase tracking-widest mt-1 ${color}`;
+    
+    const circle = document.getElementById('healthCircle');
+    const circumference = 339; 
+    const offset = circumference - (score / 100) * circumference;
+    circle.style.strokeDashoffset = offset;
+    circle.className.baseVal = `${color} transition-all duration-1000 ease-out`;
+}
+
+function renderBudgetBars(sortedCats, totalSpend) {
+    const container = document.getElementById('budgetBarsContainer');
+    container.innerHTML = "";
+    if(sortedCats.length === 0) return container.innerHTML = "<p class='text-xs text-slate-400'>No spending data yet.</p>";
+
+    const top3 = sortedCats.slice(0, 3);
+    top3.forEach(([cat, amount]) => {
+        let mockLimit = amount * 1.2; 
+        let percent = (amount / mockLimit) * 100;
+        let barColor = percent > 80 ? 'bg-rose-500' : (percent > 60 ? 'bg-amber-500' : 'bg-emerald-500');
+
+        container.innerHTML += `
+            <div class="bg-white/50 p-4 rounded-2xl border border-white shadow-sm">
+                <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-2 uppercase tracking-wide">
+                    <span>${cat}</span>
+                    <span>₹${amount.toLocaleString()} <span class="text-slate-400">/ ₹${Math.round(mockLimit).toLocaleString()}</span></span>
+                </div>
+                <div class="w-full bg-slate-200/50 rounded-full h-2 shadow-inner">
+                    <div class="${barColor} h-2 rounded-full shadow-sm" style="width: ${Math.min(percent, 100)}%"></div>
+                </div>
+            </div>
+        `;
+    });
+}
+
+function detectSubscriptions(transactions) {
+    const list = document.getElementById('subscriptionsList');
+    list.innerHTML = "";
+    const keywords = ['netflix', 'spotify', 'amazon', 'prime', 'gym', 'swiggy', 'zomato', 'apple', 'adobe'];
+    
+    let found = [];
+    transactions.forEach(t => {
+        if(t.amount >= 0) return;
+        let desc = (t.description || "").toLowerCase();
+        if(keywords.some(k => desc.includes(k))) {
+            if(!found.find(f => f.desc === desc)) found.push({ desc: t.description, amount: Math.abs(t.amount) });
+        }
+    });
+
+    if(found.length === 0) return list.innerHTML = `<p class="text-xs italic text-slate-400 font-medium">No active subscriptions detected.</p>`;
+
+    found.forEach(sub => {
+        list.innerHTML += `
+        <div class="flex justify-between items-center bg-white/80 p-3 rounded-2xl shadow-sm border border-rose-50">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center text-xs"><i class="fas fa-sync-alt"></i></div>
+                <span class="font-bold text-slate-700 text-xs truncate max-w-[100px]">${sub.desc}</span>
+            </div>
+            <div class="flex flex-col items-end gap-1">
+                <span class="font-black text-rose-500 text-xs">₹${sub.amount.toLocaleString()}</span>
+                <button class="text-[8px] font-bold uppercase tracking-widest bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded hover:bg-rose-500 hover:text-white transition cursor-pointer">Cancel</button>
+            </div>
+        </div>`;
+    });
+}
+
+function calculateGoal() {
+    const amount = parseFloat(document.getElementById('goalAmount').value);
+    const months = parseFloat(document.getElementById('goalMonths').value);
+    const resBox = document.getElementById('goalResult');
+    
+    if(!amount || !months || months <= 0) return alert("Enter valid goal numbers.");
+
+    const monthlyTarget = amount / months;
+    document.getElementById('goalMonthlyAmount').innerText = `₹${Math.round(monthlyTarget).toLocaleString('en-IN')}`;
+    
+    const leftover = currentIncome - currentSpend;
+    let advice = "";
+    if (currentIncome === 0) advice = "Tip: Log some income to see if this is affordable!";
+    else if (leftover >= monthlyTarget) advice = `<span class="text-emerald-500 font-bold">Achievable!</span> You have ₹${leftover.toLocaleString()} remaining this month.`;
+    else advice = `<span class="text-rose-500 font-bold">Tight budget!</span> You need ₹${Math.round(monthlyTarget - leftover).toLocaleString()} more per month.`;
+    
+    document.getElementById('goalAdvice').innerHTML = advice;
+    resBox.classList.remove('hidden');
+}
+
+function handleEnter(e) { if (e.key === 'Enter') askAI(); }
+
+function renderTable(transactionsToShow) {
+    const tbody = document.getElementById('tableBody');
+    tbody.innerHTML = "";
+    transactionsToShow.forEach(t => {
+        if (typeof t.amount !== 'number' || isNaN(t.amount)) return;
+        const isDebit = t.amount < 0;
+        let tagColor = isDebit ? 'bg-violet-100 text-violet-700' : 'bg-emerald-100 text-emerald-700';
+        let amtColor = isDebit ? 'text-slate-800' : 'text-emerald-500';
+        tbody.innerHTML += `
+            <tr class="list-row group border-b border-slate-100/50">
+                <td class="px-6 py-4 text-slate-500 whitespace-nowrap text-xs">${t.date || '---'}</td>
+                <td class="px-6 py-4 text-slate-800 font-bold text-sm group-hover:text-violet-600 transition-colors">${t.description || 'N/A'}</td>
+                <td class="px-6 py-4"><span class="${tagColor} px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider whitespace-nowrap">${t.category || 'UNCLASSIFIED'}</span></td>
+                <td class="px-6 py-4 text-right font-black ${amtColor} text-sm whitespace-nowrap">${isDebit ? '-' : '+'}₹${Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+            </tr>`;
+    });
+}
+
+function buildCalendarStrip(txData) {
+    const strip = document.getElementById('calendarStrip');
+    strip.innerHTML = `<button onclick="filterByDate('All')" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-white shadow-lg transition hover:-translate-y-0.5 flex-shrink-0">All Days</button>`;
+    
+    const uniqueMonths = new Set();
+    txData.forEach(t => {
+        if(t.date && t.date.length >= 7) {
+            let parts = String(t.date).split('-');
+            if(parts.length === 3) uniqueMonths.add(`${parts[1]}-${parts[2]}`);
+            else uniqueMonths.add(t.date);
+        }
+    });
+
+    [...uniqueMonths].forEach(month => {
+        strip.innerHTML += `<button onclick="filterByDate('${month}')" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-white/80 text-slate-600 border border-slate-200 shadow-sm transition hover:bg-white hover:-translate-y-0.5 flex-shrink-0">${month}</button>`;
+    });
+}
+
+function filterByDate(searchTerm) {
+    document.getElementById('liveSearch').value = ''; 
+    if(searchTerm === 'All') renderTable(globalTransactions);
+    else renderTable(globalTransactions.filter(t => String(t.date).includes(searchTerm)));
+}
+
+function filterTable() {
+    const query = document.getElementById('liveSearch').value.toLowerCase();
+    const filtered = globalTransactions.filter(t => 
+        (t.description && t.description.toLowerCase().includes(query)) ||
+        (t.category && t.category.toLowerCase().includes(query)) ||
+        (t.date && t.date.toLowerCase().includes(query))
+    );
+    renderTable(filtered);
+}
+
+function initChart(cats, chartHex) {
+    if(chartObj) chartObj.destroy();
+    const ctx = document.getElementById('myChart').getContext('2d');
+    chartObj = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: chartHex, borderWidth: 0, hoverOffset: 12 }] },
+        options: { 
+            plugins: { 
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    titleColor: '#0f172a',
+                    bodyColor: '#64748b',
+                    borderColor: 'rgba(226, 232, 240, 1)',
+                    borderWidth: 1,
+                    padding: 12,
+                    boxPadding: 6,
+                    usePointStyle: true,
+                    cornerRadius: 12,
+                    displayColors: true,
+                    bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 13, weight: 'bold' }
+                }
+            }, 
+            cutout: '75%', 
+            animation: { animateScale: true, animateRotate: true, duration: 1500, easing: 'easeOutQuart' } 
+        }
+    });
+}
+</script>
+</body>
+</html>
