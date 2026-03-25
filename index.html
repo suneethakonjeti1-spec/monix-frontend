@@ -335,8 +335,12 @@
 
 <script>
 // ==========================================
-// 🚀 PREMIUM 3D TILT PHYSICS
+// 🛑 IMPORTANT: PASTE YOUR RENDER LINK HERE!
 // ==========================================
+// Change this link to your actual monix-backend URL!
+const BACKEND_URL = "https://YOUR-RENDER-LINK-HERE.onrender.com";
+
+
 function initTiltEffect() {
     const cards = document.querySelectorAll('.spatial-card');
     cards.forEach(card => {
@@ -357,9 +361,6 @@ function initTiltEffect() {
 }
 document.addEventListener('DOMContentLoaded', initTiltEffect);
 
-// ==========================================
-// 🔥 FIREBASE & FIRESTORE INITIALIZATION
-// ==========================================
 const firebaseConfig = {
     apiKey: "AIzaSyC173uyOYugWgjM1cPvcw04iK_bprzHZIY",
     authDomain: "monix-c9216.firebaseapp.com",
@@ -373,7 +374,7 @@ if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
 }
 const auth = firebase.auth();
-const db = firebase.firestore(); // 🌟 Initialize Firestore!
+const db = firebase.firestore();
 
 let isLoginMode = true; 
 let chartObj = null;
@@ -381,13 +382,35 @@ let globalTransactions = [];
 let allTimeTransactions = []; 
 let currentIncome = 0;
 let currentSpend = 0;
+let isRoastMode = false; // Added this!
+
+// Added the missing function for Roast Mode!
+function toggleRoastMode() {
+    isRoastMode = document.getElementById('roastToggle').checked;
+    const label = document.getElementById('roastLabel');
+    const chatWrapper = document.getElementById('chatContainerWrapper');
+    
+    if (isRoastMode) {
+        label.innerText = "ROAST MODE 🔥";
+        label.className = "text-[9px] font-black text-rose-600 uppercase tracking-widest";
+        chatWrapper.classList.add('roast-active');
+        document.getElementById('aiAvatarColor').className = "w-8 h-8 bg-rose-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-rose-500/30";
+        document.getElementById('welcomeMessage').innerText = "Oh look, it's you. Ready to get roasted on your terrible spending habits?";
+    } else {
+        label.innerText = "Advisor Mode";
+        label.className = "text-[9px] font-bold text-slate-500 uppercase tracking-widest";
+        chatWrapper.classList.remove('roast-active');
+        document.getElementById('aiAvatarColor').className = "w-8 h-8 bg-violet-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-violet-500/30";
+        document.getElementById('welcomeMessage').innerText = "I've reviewed your summary. Ask me anything!";
+    }
+}
 
 auth.onAuthStateChanged(user => {
     if (user) {
         document.getElementById('loginSection').style.display = 'none';
         document.getElementById('navDock').style.display = 'flex'; 
         document.getElementById('profileEmailDisplay').innerText = user.email; 
-        fetchHistory(); // 🌟 Automatically pull from Firestore on login
+        fetchHistory(); 
     } else {
         document.getElementById('loginSection').style.display = 'block';
         document.getElementById('mainAppContainer').style.display = 'none';
@@ -450,9 +473,6 @@ function updateMsg(txt, colorClass) {
     setTimeout(() => { s.style.display = "none"; }, 4000);
 }
 
-// ==========================================
-// ☁️ CLOUD DATA INTEGRATION
-// ==========================================
 async function processPDF() {
     const file = document.getElementById('pdfFile').files[0];
     const user = auth.currentUser;
@@ -466,21 +486,18 @@ async function processPDF() {
     updateMsg("AI Scanning Document...", "text-violet-500 animate-pulse");
 
     try {
-        // 1. Let Node.js Backend process the PDF via Gemini
-        const res = await fetch('https://monix-backend-xyz.onrender.com/upload', { method: 'POST', body: formData });
+        // 🌟 Uses the dynamic BACKEND_URL constant
+        const res = await fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData });
         if (!res.ok) throw new Error("Server Error");
         const parsedData = await res.json();
 
-        // 2. Append new data to existing Firestore data
         const docRef = db.collection('users').doc(user.uid);
         const doc = await docRef.get();
         let existingData = doc.exists ? (doc.data().transactions || []) : [];
         let combinedData = [...existingData, ...parsedData];
 
-        // 3. Save securely to Cloud Firestore under User ID
         await docRef.set({ transactions: combinedData, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
 
-        // 4. Update UI
         allTimeTransactions = combinedData;
         renderData(allTimeTransactions);
         switchView('dash'); 
@@ -498,7 +515,6 @@ async function fetchHistory() {
 
     updateMsg("Loading Secure Cloud Data...", "text-sky-500 animate-pulse");
     try {
-        // 🌟 Pull directly from Cloud Firestore based on User ID!
         const doc = await db.collection('users').doc(user.uid).get();
         
         if (doc.exists && doc.data().transactions && doc.data().transactions.length > 0) {
@@ -523,7 +539,6 @@ async function clearHistory() {
 
     if(!confirm("Are you sure you want to permanently delete your data?")) return;
     try {
-        // 🌟 Delete from Cloud Firestore
         await db.collection('users').doc(user.uid).delete();
         allTimeTransactions = []; 
         switchView('dash'); 
@@ -531,9 +546,6 @@ async function clearHistory() {
     } catch (e) {}
 }
 
-// ==========================================
-// AI FETCH CALLS (Passing History to Backend)
-// ==========================================
 async function askAI() {
     const inputField = document.getElementById('chatInput');
     const question = inputField.value.trim();
@@ -566,8 +578,8 @@ async function askAI() {
     if(isRoastMode) finalQuestion += " (Reply to this in a highly sarcastic, roasting, and slightly mean tone pointing out bad spending habits. Keep it short.)";
 
     try {
-        // 🌟 Send both the Question AND the User's History to the Stateless Backend
-        const res = await fetch('http://localhost:3000/chat', {
+        // 🌟 Uses the dynamic BACKEND_URL constant instead of localhost!
+        const res = await fetch(`${BACKEND_URL}/chat`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question: finalQuestion, history: allTimeTransactions })
@@ -593,8 +605,8 @@ async function askAI() {
 async function fetchPredictions() {
     const list = document.getElementById('predictionsList');
     try {
-        // 🌟 Send User's History to the Stateless Backend
-        const res = await fetch('http://localhost:3000/predict', {
+        // 🌟 Uses the dynamic BACKEND_URL constant instead of localhost!
+        const res = await fetch(`${BACKEND_URL}/predict`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ history: allTimeTransactions })
@@ -612,9 +624,6 @@ async function fetchPredictions() {
     } catch (e) { list.innerHTML = `<p class="text-[10px] font-bold text-rose-500 mt-2">Failed to load AI predictions.</p>`; }
 }
 
-// ==========================================
-// CORE RENDERING (Remaining logic unchanged)
-// ==========================================
 function renderData(transactions) {
     globalTransactions = transactions; 
     currentSpend = 0; currentIncome = 0; let cats = {};
