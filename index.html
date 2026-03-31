@@ -3,364 +3,684 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Monix | Premium FinTech Intelligence</title>
+    <title>Monix — Financial Intelligence</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
+
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
 
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-        
-        body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #f4f7fb; color: #0f172a; min-height: 100vh; overflow-x: hidden; scroll-behavior: smooth; }
-        
-        .bg-mesh {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
-            background: radial-gradient(circle at 10% 40%, rgba(124, 58, 237, 0.08), transparent 30%),
-                        radial-gradient(circle at 90% 20%, rgba(236, 72, 153, 0.08), transparent 30%),
-                        radial-gradient(circle at 50% 90%, rgba(14, 165, 233, 0.08), transparent 30%);
-            background-color: #f8fafc; filter: blur(50px);
+        :root {
+            --ink: #0a0a0f;
+            --ink-2: #1c1c27;
+            --ink-3: #2e2e3d;
+            --muted: #6b6b80;
+            --muted-2: #9898aa;
+            --surface: #ffffff;
+            --surface-2: #f5f5f8;
+            --surface-3: #ededf2;
+            --border: rgba(0,0,0,0.07);
+            --border-strong: rgba(0,0,0,0.12);
+            --accent: #4f46e5;
+            --accent-light: #ede9fe;
+            --accent-2: #7c3aed;
+            --green: #059669;
+            --green-light: #d1fae5;
+            --red: #dc2626;
+            --red-light: #fee2e2;
+            --amber: #d97706;
+            --amber-light: #fef3c7;
+            --radius: 20px;
+            --radius-sm: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            --shadow: 0 4px 16px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04);
+            --shadow-lg: 0 20px 40px rgba(0,0,0,0.08), 0 4px 12px rgba(0,0,0,0.05);
         }
 
-        .spatial-card { 
-            background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.03), inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
-            border-radius: 32px; transition: box-shadow 0.4s ease, transform 0.1s out;
-            transform-style: preserve-3d;
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'DM Sans', sans-serif;
+            background: var(--surface-2);
+            color: var(--ink);
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
-        
-        .list-row { background: transparent; border-bottom: 1px solid rgba(0,0,0,0.03); transition: all 0.2s ease; }
-        .list-row:hover { background: rgba(255,255,255,0.9); border-radius: 16px; transform: scale(1.005); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.02); }
-        
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
+
+        h1, h2, h3, h4, .font-display { font-family: 'Syne', sans-serif; }
+
+        /* ── Page background grain ── */
+        body::before {
+            content: '';
+            position: fixed; inset: 0; z-index: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+            pointer-events: none;
+        }
+
+        /* ── Cards ── */
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            position: relative;
+        }
+        .card-sm { border-radius: var(--radius-sm); }
+
+        /* ── Inputs ── */
+        .field {
+            width: 100%;
+            background: var(--surface-2);
+            border: 1px solid var(--border-strong);
+            border-radius: var(--radius-sm);
+            padding: 12px 16px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--ink);
+            outline: none;
+            transition: border-color 0.15s, box-shadow 0.15s;
+        }
+        .field:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        .field::placeholder { color: var(--muted-2); font-weight: 400; }
+
+        /* ── Buttons ── */
+        .btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 14px; font-weight: 600;
+            border: none; cursor: pointer;
+            border-radius: var(--radius-sm);
+            transition: all 0.15s;
+            padding: 12px 20px;
+        }
+        .btn:active { transform: scale(0.97); }
+        .btn-primary { background: var(--ink); color: #fff; }
+        .btn-primary:hover { background: var(--accent); }
+        .btn-ghost { background: var(--surface-2); color: var(--ink-3); border: 1px solid var(--border-strong); }
+        .btn-ghost:hover { background: var(--surface-3); }
+        .btn-danger { background: var(--red-light); color: var(--red); }
+        .btn-danger:hover { background: var(--red); color: #fff; }
+        .btn:disabled { opacity: 0.5; pointer-events: none; }
+
+        /* ── Labels / Badges ── */
+        .badge {
+            display: inline-flex; align-items: center; gap: 5px;
+            font-size: 11px; font-weight: 600; letter-spacing: .04em;
+            padding: 3px 10px; border-radius: 100px;
+        }
+        .badge-green { background: var(--green-light); color: #065f46; }
+        .badge-red { background: var(--red-light); color: #991b1b; }
+        .badge-accent { background: var(--accent-light); color: #3730a3; }
+        .badge-amber { background: var(--amber-light); color: #92400e; }
+        .badge-gray { background: var(--surface-3); color: var(--muted); }
+
+        /* ── Nav dock ── */
+        #navDock {
+            position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+            z-index: 100;
+            background: rgba(255,255,255,0.92);
+            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-strong);
+            border-radius: 100px;
+            padding: 10px 20px;
+            display: none; align-items: center; gap: 4px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 2px 8px rgba(0,0,0,0.06);
+            white-space: nowrap;
+        }
+        .nav-btn {
+            display: flex; flex-direction: column; align-items: center; gap: 3px;
+            padding: 8px 16px; border-radius: 100px;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 10px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase;
+            color: var(--muted); background: transparent; border: none; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .nav-btn i { font-size: 16px; transition: transform 0.2s; }
+        .nav-btn:hover { color: var(--accent); }
+        .nav-btn.active { color: var(--accent); background: var(--accent-light); }
+        .nav-btn.active i { transform: translateY(-1px); }
+
+        /* Upload fab */
+        .nav-upload {
+            width: 52px; height: 52px; border-radius: 50%;
+            background: var(--ink); color: #fff;
+            border: none; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 16px rgba(10,10,15,0.25);
+            margin: 0 6px;
+            position: relative; top: -4px;
+        }
+        .nav-upload:hover { background: var(--accent); transform: scale(1.08) translateY(-2px); }
+        .nav-upload:active { transform: scale(0.95); }
+        .nav-divider { width: 1px; height: 28px; background: var(--border-strong); margin: 0 4px; }
+
+        /* ── Status toast ── */
+        #toast {
+            position: fixed; top: 24px; right: 24px; z-index: 200;
+            background: var(--ink); color: #fff;
+            font-family: 'DM Sans', sans-serif;
+            font-size: 13px; font-weight: 500;
+            padding: 10px 18px; border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-lg);
+            opacity: 0; transform: translateY(-8px);
+            transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+            pointer-events: none;
+            display: flex; align-items: center; gap: 8px;
+            max-width: 320px;
+        }
+        #toast.show { opacity: 1; transform: translateY(0); }
+        #toast.success { background: #065f46; }
+        #toast.error { background: #991b1b; }
+        #toast.info { background: var(--accent); }
+
+        /* ── Loading overlay ── */
+        #loadingOverlay {
+            position: fixed; inset: 0; z-index: 300;
+            background: rgba(250,250,252,0.85);
+            backdrop-filter: blur(8px);
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            gap: 20px;
+        }
+        #loadingOverlay.show { display: flex; }
+        .spinner {
+            width: 44px; height: 44px;
+            border: 3px solid var(--border-strong);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 15px; font-weight: 600;
+            color: var(--ink-3);
+            animation: pulse 1.6s ease-in-out infinite;
+        }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 4px; height: 4px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
 
-        .glass-dock {
-            background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 1); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+        /* ── Table ── */
+        .tx-row { border-bottom: 1px solid var(--border); transition: background 0.1s; }
+        .tx-row:hover { background: var(--surface-2); }
+        .tx-row:last-child { border-bottom: none; }
+
+        /* ── View animations ── */
+        .view { animation: viewIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes viewIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Stat card accent line ── */
+        .stat-accent { position: absolute; top: 0; left: 0; right: 0; height: 3px; border-radius: 20px 20px 0 0; }
+
+        /* ── Progress bar ── */
+        .progress-track { background: var(--surface-3); border-radius: 100px; overflow: hidden; }
+        .progress-fill { height: 100%; border-radius: 100px; transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+
+        /* ── Chat messages ── */
+        .msg-user { background: var(--ink); color: #fff; border-radius: 18px 18px 4px 18px; }
+        .msg-ai { background: var(--surface-2); color: var(--ink); border-radius: 18px 18px 18px 4px; border: 1px solid var(--border); }
+        .msg-error { background: var(--red-light); color: var(--red); border-radius: 18px; }
+
+        /* ── Toggle ── */
+        .toggle-wrap { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .toggle-track {
+            position: relative; width: 36px; height: 20px;
+            background: var(--surface-3); border-radius: 100px;
+            border: 1px solid var(--border-strong);
+            transition: background 0.2s;
         }
+        .toggle-track.on { background: var(--red); border-color: var(--red); }
+        .toggle-thumb {
+            position: absolute; top: 2px; left: 2px;
+            width: 14px; height: 14px; border-radius: 50%;
+            background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .toggle-track.on .toggle-thumb { transform: translateX(16px); }
 
-        .nav-item.active { color: #7c3aed; }
-        .nav-item.active i { transform: translateY(-2px); color: #7c3aed; }
+        /* ── Health ring ── */
+        #healthCircle { transition: stroke-dashoffset 1s cubic-bezier(0.16, 1, 0.3, 1), stroke 0.5s; }
 
-        .toggle-checkbox:checked { right: 0; border-color: #ef4444; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #ef4444; }
-        .toggle-checkbox:checked + .toggle-label:before { transform: translateX(100%); }
-        .roast-active { background: linear-gradient(135deg, rgba(254,242,242,0.9) 0%, rgba(255,241,242,0.9) 100%); border-color: #fecdd3 !important; }
-        
-        .app-view { animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+        /* ── Category pill colors ── */
+        .cat-0 { background: #ede9fe; color: #5b21b6; }
+        .cat-1 { background: #dbeafe; color: #1e40af; }
+        .cat-2 { background: #d1fae5; color: #065f46; }
+        .cat-3 { background: #fef3c7; color: #92400e; }
+        .cat-4 { background: #fee2e2; color: #991b1b; }
+        .cat-5 { background: #f0fdf4; color: #166534; }
+        .cat-6 { background: #e0f2fe; color: #075985; }
+        .cat-7 { background: #fdf4ff; color: #86198f; }
+        .cat-8 { background: #fff7ed; color: #9a3412; }
+        .cat-9 { background: #f1f5f9; color: #475569; }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            #navDock { bottom: 16px; padding: 8px 12px; gap: 2px; }
+            .nav-btn { padding: 8px 10px; font-size: 9px; }
+            .nav-upload { width: 46px; height: 46px; font-size: 18px; }
+        }
     </style>
 </head>
-<body class="relative pb-32">
+<body class="relative pb-40">
 
-    <div class="bg-mesh"></div>
+<!-- Loading overlay -->
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <p class="loading-text" id="loadingText">Scanning document...</p>
+</div>
 
-    <div id="navDock" class="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-50 glass-dock rounded-full px-6 py-3 hidden items-center gap-8 w-max transition-all duration-500">
-        <div class="flex items-center gap-2 pr-6 border-r border-slate-200">
-            <div class="w-8 h-8 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl flex items-center justify-center text-white font-black text-sm shadow-lg shadow-violet-500/30">M</div>
+<!-- Toast -->
+<div id="toast"><i id="toastIcon" class="fas fa-info-circle"></i><span id="toastMsg"></span></div>
+
+<!-- Hidden file input -->
+<input type="file" id="pdfFile" class="hidden" accept=".pdf" onchange="onFileSelected()">
+
+<!-- ── Nav Dock ── -->
+<nav id="navDock">
+    <button class="nav-btn" id="nav-dash" onclick="switchView('dash')">
+        <i class="fas fa-chart-pie"></i><span>Overview</span>
+    </button>
+    <button class="nav-btn" id="nav-ledger" onclick="switchView('ledger')">
+        <i class="fas fa-receipt"></i><span>Ledger</span>
+    </button>
+    <div class="nav-divider"></div>
+    <button class="nav-upload" onclick="document.getElementById('pdfFile').click()" title="Upload PDF Statement">
+        <i class="fas fa-plus"></i>
+    </button>
+    <div class="nav-divider"></div>
+    <button class="nav-btn" id="nav-goals" onclick="switchView('goals')">
+        <i class="fas fa-bullseye"></i><span>Planner</span>
+    </button>
+    <button class="nav-btn" id="nav-profile" onclick="switchView('profile')">
+        <i class="far fa-user-circle"></i><span>Account</span>
+    </button>
+</nav>
+
+<!-- ── Main container ── -->
+<div class="max-w-5xl mx-auto px-4 md:px-6 pt-10 relative z-10">
+
+    <!-- ── LOGIN ── -->
+    <div id="loginSection" class="max-w-sm mx-auto mt-16" style="display:none;">
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center gap-2 mb-6">
+                <div style="width:36px;height:36px;background:var(--ink);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+                    <span style="font-family:'Syne',sans-serif;color:#fff;font-weight:800;font-size:18px;">M</span>
+                </div>
+                <span style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:var(--ink);">Monix</span>
+            </div>
+            <h1 id="formTitle" style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:6px;">Welcome back</h1>
+            <p style="color:var(--muted);font-size:14px;">Your personal finance intelligence layer.</p>
         </div>
-        
-        <button onclick="switchView('dash')" id="nav-dash" class="nav-item group flex flex-col items-center gap-1 text-slate-400 hover:text-violet-600 transition active:scale-95">
-            <i class="fas fa-layer-group text-lg transition-transform"></i>
-            <span class="text-[9px] font-bold uppercase tracking-widest">Dash</span>
-        </button>
-        
-        <button onclick="switchView('ledger')" id="nav-ledger" class="nav-item group flex flex-col items-center gap-1 text-slate-400 hover:text-violet-600 transition active:scale-95">
-            <i class="fas fa-receipt text-lg transition-transform"></i>
-            <span class="text-[9px] font-bold uppercase tracking-widest">Ledger</span>
-        </button>
 
-        <div class="relative -top-6 mx-2">
-            <button onclick="document.getElementById('pdfFile').click()" class="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center text-white shadow-2xl shadow-slate-900/40 hover:scale-110 active:scale-95 hover:bg-violet-600 transition-all duration-300 ring-4 ring-white/60">
-                <i class="fas fa-cloud-upload-alt text-2xl"></i>
-            </button>
+        <div class="card" style="padding:28px;">
+            <div style="display:flex;flex-direction:column;gap:14px;">
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.04em;">EMAIL</label>
+                    <input type="email" id="emailInput" class="field" placeholder="you@example.com">
+                </div>
+                <div>
+                    <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.04em;">PASSWORD</label>
+                    <input type="password" id="passwordInput" class="field" placeholder="••••••••" onkeypress="if(event.key==='Enter')handleAuth()">
+                </div>
+                <button id="actionBtn" class="btn btn-primary" style="width:100%;margin-top:4px;padding:14px;font-size:15px;" onclick="handleAuth()">Sign In</button>
+            </div>
+
+            <div style="border-top:1px solid var(--border);margin-top:20px;padding-top:16px;text-align:center;">
+                <p style="font-size:13px;color:var(--muted);">
+                    <span id="toggleText">Don't have an account?</span>
+                    <button onclick="toggleMode()" id="toggleBtn" style="color:var(--accent);font-weight:600;background:none;border:none;cursor:pointer;margin-left:4px;font-size:13px;">Sign up</button>
+                </p>
+            </div>
         </div>
 
-        <button onclick="switchView('goals')" id="nav-goals" class="nav-item group flex flex-col items-center gap-1 text-slate-400 hover:text-violet-600 transition relative active:scale-95">
-            <i class="fas fa-bullseye text-lg transition-transform"></i>
-            <span class="text-[9px] font-bold uppercase tracking-widest">Goals</span>
-        </button>
+        <div style="text-align:center;margin-top:16px;">
+            <span class="badge badge-green"><i class="fas fa-shield-alt"></i> End-to-end encrypted</span>
+        </div>
+    </div>
 
-        <div class="pl-6 border-l border-slate-200">
-            <button onclick="switchView('profile')" id="nav-profile" class="nav-item group flex flex-col items-center gap-1 text-slate-400 hover:text-violet-600 transition active:scale-95">
-                <i class="far fa-user text-lg transition-transform"></i>
-                <span class="text-[9px] font-bold uppercase tracking-widest">Profile</span>
+    <!-- ── EMPTY STATE ── -->
+    <div id="emptyState" style="display:none;" class="view">
+        <div style="text-align:center;padding:80px 20px;">
+            <div style="width:80px;height:80px;background:var(--surface-3);border-radius:24px;display:flex;align-items:center;justify-content:center;margin:0 auto 24px;font-size:36px;color:var(--muted);">
+                <i class="fas fa-file-invoice-dollar"></i>
+            </div>
+            <h2 style="font-family:'Syne',sans-serif;font-size:26px;font-weight:700;color:var(--ink);margin-bottom:10px;">No statements yet</h2>
+            <p style="color:var(--muted);font-size:15px;max-width:340px;margin:0 auto 28px;line-height:1.6;">Upload a bank statement PDF to get instant AI-powered insights on your finances.</p>
+            <button onclick="document.getElementById('pdfFile').click()" class="btn btn-primary" style="padding:14px 28px;font-size:15px;">
+                <i class="fas fa-plus"></i> Upload Statement
             </button>
         </div>
     </div>
-    
-    <div class="fixed top-6 right-6 z-50">
-        <p id="statusMsg" class="text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full shadow-lg border border-white hidden transition-all"></p>
-    </div>
 
-    <div class="pt-12 px-4 md:px-8 max-w-[1200px] mx-auto relative min-h-[80vh]">
-        
-        <div id="loginSection" class="max-w-md mx-auto spatial-card p-10 mt-10 relative overflow-hidden" style="display: none;">
-            <div class="absolute -right-20 -top-20 w-64 h-64 bg-violet-500/10 rounded-full blur-3xl"></div>
-            <div class="text-center mb-8 relative z-10">
-                <div class="w-20 h-20 bg-gradient-to-br from-slate-900 to-slate-800 rounded-3xl flex items-center justify-center text-white mb-6 mx-auto shadow-2xl shadow-slate-900/20">
-                    <span class="text-4xl font-black">M</span>
+    <!-- ── MAIN APP ── -->
+    <div id="mainApp" style="display:none;">
+
+        <!-- ════════════════════ DASH ════════════════════ -->
+        <div id="view-dash" class="view">
+            <div style="margin-bottom:28px;display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+                <div>
+                    <p style="font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Overview</p>
+                    <h1 style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--ink);">Your Finances</h1>
                 </div>
-                <h2 id="formTitle" class="text-3xl font-black text-slate-800 tracking-tight">Monix Secure</h2>
-                <p class="text-slate-500 text-sm font-medium mt-2">Next-Gen Financial Intelligence</p>
+                <span id="lastUpdatedBadge" class="badge badge-gray"></span>
             </div>
 
-            <div class="space-y-5 relative z-10">
-                <input type="email" id="emailInput" placeholder="Email address" class="w-full bg-white/60 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition shadow-inner">
-                <input type="password" id="passwordInput" placeholder="Password" class="w-full bg-white/60 border border-slate-200 rounded-2xl px-5 py-4 text-sm font-medium outline-none focus:ring-4 focus:ring-violet-500/10 focus:border-violet-500 transition shadow-inner">
-                <button id="actionBtn" onclick="handleAuth()" class="w-full mt-2 bg-slate-900 text-white font-bold rounded-2xl py-4 hover:bg-violet-600 active:scale-95 transition-all shadow-xl shadow-slate-900/20">Sign In</button>
-            </div>
+            <!-- Top stat cards -->
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:16px;">
 
-            <div class="mt-6 flex justify-center">
-                <div class="inline-flex items-center gap-2 bg-emerald-50/80 text-emerald-600 px-4 py-2 rounded-full text-[10px] font-bold border border-emerald-100">
-                    <i class="fas fa-shield-alt"></i> 256-bit AES Encryption
+                <!-- Health score -->
+                <div class="card" style="padding:24px;display:flex;flex-direction:column;align-items:center;gap:16px;">
+                    <div style="position:relative;width:100px;height:100px;">
+                        <svg viewBox="0 0 100 100" style="width:100%;height:100%;transform:rotate(-90deg);">
+                            <circle cx="50" cy="50" r="40" stroke="var(--surface-3)" stroke-width="10" fill="none"/>
+                            <circle id="healthCircle" cx="50" cy="50" r="40" stroke="var(--accent)" stroke-width="10" fill="none"
+                                stroke-dasharray="251.2" stroke-dashoffset="251.2" stroke-linecap="round"/>
+                        </svg>
+                        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;">
+                            <span id="healthScoreText" style="font-family:'Syne',sans-serif;font-size:26px;font-weight:800;line-height:1;">0</span>
+                            <span id="healthScoreLabel" style="font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;margin-top:2px;">Score</span>
+                        </div>
+                    </div>
+                    <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;">Financial Health</p>
+                </div>
+
+                <!-- Income -->
+                <div class="card" style="padding:24px;">
+                    <div class="stat-accent" style="background:var(--green);"></div>
+                    <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Total Income</p>
+                    <p id="totalInc" style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--green);">₹0</p>
+                    <p id="incTxCount" style="font-size:12px;color:var(--muted);margin-top:6px;">0 credits</p>
+                </div>
+
+                <!-- Spending -->
+                <div class="card" style="padding:24px;">
+                    <div class="stat-accent" style="background:var(--red);"></div>
+                    <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Total Spending</p>
+                    <p id="totalExp" style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--ink);">₹0</p>
+                    <p id="expTxCount" style="font-size:12px;color:var(--muted);margin-top:6px;">0 debits</p>
+                </div>
+
+                <!-- Net savings -->
+                <div class="card" style="padding:24px;">
+                    <div class="stat-accent" id="savingsAccent" style="background:var(--accent);"></div>
+                    <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Net Savings</p>
+                    <p id="totalSavings" style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--accent);">₹0</p>
+                    <p id="savingsRate" style="font-size:12px;color:var(--muted);margin-top:6px;">0% savings rate</p>
                 </div>
             </div>
 
-            <div class="mt-6 text-center relative z-10">
-                <p class="text-sm font-medium text-slate-500"><span id="toggleText">New to Monix?</span> <button onclick="toggleMode()" class="text-violet-600 font-bold hover:underline ml-1" id="toggleBtn">Create Account</button></p>
+            <!-- Row 2: Chart + Predictions + Subscriptions -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+                <!-- Spending chart -->
+                <div class="card" style="padding:24px;">
+                    <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:16px;">Spending by Category</p>
+                    <div style="display:flex;align-items:center;gap:20px;">
+                        <div style="width:140px;height:140px;flex-shrink:0;"><canvas id="myChart"></canvas></div>
+                        <div id="categoryLegend" style="flex:1;display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:160px;"></div>
+                    </div>
+                </div>
+
+                <!-- Predictions -->
+                <div class="card" style="padding:24px;">
+                    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+                        <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;">Predicted Bills</p>
+                        <span class="badge badge-accent"><i class="fas fa-wand-magic-sparkles" style="font-size:9px;"></i> AI</span>
+                    </div>
+                    <div id="predictionsList" style="display:flex;flex-direction:column;gap:8px;">
+                        <p style="font-size:13px;color:var(--muted);font-style:italic;">Loading predictions...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Row 3: Spending alerts + Subscriptions -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+
+                <!-- Budget alerts -->
+                <div class="card" style="padding:24px;">
+                    <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:16px;">Top Spending Categories</p>
+                    <div id="budgetBarsContainer" style="display:flex;flex-direction:column;gap:14px;"></div>
+                </div>
+
+                <!-- Subscriptions -->
+                <div class="card" style="padding:24px;">
+                    <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:16px;">Detected Subscriptions</p>
+                    <div id="subscriptionsList" style="display:flex;flex-direction:column;gap:8px;"></div>
+                </div>
             </div>
         </div>
 
-        <input type="file" id="pdfFile" class="hidden" accept=".pdf" onchange="updateFileName(); processPDF();">
-
-        <div id="emptyDashboardState" style="display: none;" class="text-center py-32 spatial-card mt-10 max-w-3xl mx-auto app-view">
-            <div class="w-32 h-32 bg-white/70 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner border border-white">
-                <i class="fas fa-layer-group text-5xl text-violet-400"></i>
+        <!-- ════════════════════ LEDGER ════════════════════ -->
+        <div id="view-ledger" class="view" style="display:none;">
+            <div style="margin-bottom:28px;">
+                <p style="font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Transactions</p>
+                <h1 style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--ink);">Ledger</h1>
             </div>
-            <h2 class="text-4xl font-black text-slate-800 tracking-tight mb-4">Your Financial Canvas is Empty</h2>
-            <p class="text-slate-500 font-medium mb-8 max-w-md mx-auto text-lg">Click the central black button below to upload your first bank statement PDF.</p>
-            <div class="inline-flex items-center gap-2 bg-slate-100/80 text-slate-500 px-5 py-2.5 rounded-full text-xs font-bold border border-slate-200">
-                <i class="fas fa-lock text-emerald-500"></i> Saved securely to Cloud Firestore.
+
+            <div class="card" style="overflow:hidden;">
+                <!-- Filters row -->
+                <div style="padding:16px 20px;border-bottom:1px solid var(--border);display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <div style="position:relative;flex:1;min-width:200px;">
+                        <i class="fas fa-search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:13px;"></i>
+                        <input type="text" id="liveSearch" class="field" style="padding-left:36px;border-radius:var(--radius-sm);" placeholder="Search transactions..." oninput="filterTable()">
+                    </div>
+                    <select id="categoryFilter" class="field" style="width:auto;min-width:140px;" onchange="filterTable()">
+                        <option value="">All Categories</option>
+                        <option>Utilities</option><option>Salary</option><option>Food & Dining</option>
+                        <option>Shopping</option><option>Auto & Transport</option><option>Entertainment</option>
+                        <option>Transfers & Loans</option><option>Groceries</option><option>UPI Payment</option><option>Other</option>
+                    </select>
+                    <select id="typeFilter" class="field" style="width:auto;min-width:120px;" onchange="filterTable()">
+                        <option value="">All Types</option>
+                        <option value="credit">Credits only</option>
+                        <option value="debit">Debits only</option>
+                    </select>
+                    <div id="calendarStrip" style="display:flex;gap:6px;overflow-x:auto;flex-shrink:0;"></div>
+                </div>
+
+                <!-- Table -->
+                <div style="overflow-x:auto;">
+                    <table style="width:100%;border-collapse:collapse;min-width:560px;">
+                        <thead>
+                            <tr style="background:var(--surface-2);border-bottom:1px solid var(--border);">
+                                <th style="text-align:left;padding:10px 20px;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;">Date</th>
+                                <th style="text-align:left;padding:10px 20px;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;">Description</th>
+                                <th style="text-align:left;padding:10px 20px;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;">Category</th>
+                                <th style="text-align:right;padding:10px 20px;font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableBody"></tbody>
+                    </table>
+                </div>
+                <div id="ledgerEmpty" style="display:none;padding:40px;text-align:center;color:var(--muted);font-size:14px;">
+                    No transactions match your filters.
+                </div>
+                <div style="padding:12px 20px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
+                    <span id="txCountLabel" style="font-size:12px;color:var(--muted);"></span>
+                    <button id="exportCsvBtn" onclick="exportCSV()" class="btn btn-ghost" style="padding:8px 14px;font-size:12px;">
+                        <i class="fas fa-download"></i> Export CSV
+                    </button>
+                </div>
             </div>
         </div>
 
-        <div id="mainAppContainer" style="display: none;">
-
-            <div id="view-dash" class="app-view" style="display: block;">
-                <div class="mb-10 pl-2">
-                    <h1 class="text-5xl font-black tracking-tight text-slate-800">Overview</h1>
-                    <p class="text-slate-500 font-medium mt-2 flex items-center gap-2"><i class="fas fa-sparkles text-violet-500"></i> Core Financial Metrics</p>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-                    <div class="spatial-card p-6 flex flex-col items-center justify-center relative h-[240px]">
-                        <h3 class="absolute top-5 left-5 text-slate-400 font-bold uppercase tracking-widest text-[10px]">Monix Health</h3>
-                        <div class="relative w-32 h-32 flex items-center justify-center mt-4">
-                            <svg class="absolute inset-0 w-full h-full transform -rotate-90">
-                                <circle cx="64" cy="64" r="54" stroke="currentColor" stroke-width="12" fill="transparent" class="text-slate-100/50" />
-                                <circle id="healthCircle" cx="64" cy="64" r="54" stroke="currentColor" stroke-width="12" fill="transparent" stroke-dasharray="339" stroke-dashoffset="0" class="text-emerald-400 transition-all duration-1000 ease-out" stroke-linecap="round" />
-                            </svg>
-                            <div class="text-center z-10">
-                                <span class="text-4xl font-black text-slate-800" id="healthScoreText">0</span>
-                                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1" id="healthScoreLabel">Excellent</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="spatial-card p-6 bg-gradient-to-br from-slate-900 to-slate-800 border-none text-white relative overflow-hidden h-[240px] flex flex-col justify-between">
-                        <div class="absolute -right-10 -bottom-10 text-white/5 text-8xl"><i class="fas fa-wallet"></i></div>
-                        <div class="z-10">
-                            <h3 class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-1">Total Spending</h3>
-                            <p class="text-4xl font-black tracking-tighter" id="totalExp">₹0</p>
-                        </div>
-                        <div class="z-10">
-                            <h3 class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-1">Total Income</h3>
-                            <p class="text-xl font-bold text-emerald-400 tracking-tight" id="totalInc">₹0</p>
-                        </div>
-                    </div>
-
-                    <div class="spatial-card p-6 bg-gradient-to-b from-white/70 to-emerald-50/70 border-emerald-100/50 h-[240px] overflow-hidden flex flex-col">
-                        <h3 class="text-emerald-600 font-extrabold text-base mb-1 flex items-center gap-2"><i class="fas fa-radar text-amber-400"></i> Predictive AI</h3>
-                        <p class="text-[9px] font-bold uppercase tracking-widest text-slate-400 mb-4">Upcoming Bills Next Month</p>
-                        <div id="predictionsList" class="space-y-3 overflow-y-auto pr-2 custom-scrollbar"></div>
-                    </div>
-                </div>
-
-                <div class="spatial-card p-8 mb-8">
-                    <h3 class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-6 flex items-center gap-2"><i class="fas fa-fire-alt text-orange-500"></i> Spending Alerts</h3>
-                    <div id="budgetBarsContainer" class="grid grid-cols-1 md:grid-cols-3 gap-8"></div>
-                </div>
+        <!-- ════════════════════ GOALS / PLANNER ════════════════════ -->
+        <div id="view-goals" class="view" style="display:none;">
+            <div style="margin-bottom:28px;">
+                <p style="font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Intelligence</p>
+                <h1 style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--ink);">Planner</h1>
             </div>
 
-            <div id="view-ledger" class="app-view" style="display: none;">
-                <div class="mb-10 pl-2">
-                    <h1 class="text-5xl font-black tracking-tight text-slate-800">Ledger</h1>
-                    <p class="text-slate-500 font-medium mt-2">Your complete transaction history.</p>
-                </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
 
-                <div class="spatial-card overflow-hidden">
-                    <div class="p-6 border-b border-slate-100/50 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white/40">
-                        <div class="p-2 bg-white/60 border border-slate-100 overflow-x-auto whitespace-nowrap flex gap-2 rounded-2xl w-full md:w-auto" id="calendarStrip"></div>
-                        
-                        <div class="relative w-full md:w-72">
-                            <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
-                            <input type="text" id="liveSearch" onkeyup="filterTable()" placeholder="Search records..." class="w-full bg-white/80 border border-slate-200 rounded-xl pl-10 pr-4 py-2.5 text-sm font-bold text-slate-700 outline-none focus:border-violet-500 transition shadow-inner">
-                        </div>
-                    </div>
-                    
-                    <div class="overflow-x-auto w-full p-2">
-                        <table class="w-full text-left border-collapse min-w-[600px]">
-                            <thead>
-                                <tr class="text-[10px] font-bold uppercase tracking-widest text-slate-400">
-                                    <th class="px-6 py-4">Date</th>
-                                    <th class="px-6 py-4">Description</th>
-                                    <th class="px-6 py-4">AI Tag</th>
-                                    <th class="px-6 py-4 text-right">Amount</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm font-medium text-slate-600" id="tableBody"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-goals" class="app-view" style="display: none;">
-                <div class="mb-10 pl-2">
-                    <h1 class="text-5xl font-black tracking-tight text-slate-800">Intelligence</h1>
-                    <p class="text-slate-500 font-medium mt-2">AI Advisor, Goals, and Breakdown.</p>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-6">
-                    <div class="lg:col-span-6 spatial-card p-8 flex flex-col transition-colors duration-500 h-[450px]" id="chatContainerWrapper">
-                        <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100/50">
-                            <h3 class="text-slate-800 font-extrabold text-xl flex items-center gap-3">
-                                <div class="w-10 h-10 bg-violet-100 rounded-2xl flex items-center justify-center text-violet-600 shadow-inner" id="chatBotIcon"><i class="fas fa-brain text-lg"></i></div>
-                                Advisor AI
-                            </h3>
-                            
-                            <div class="flex items-center gap-3 bg-white/60 px-3 py-1.5 rounded-full border border-white">
-                                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest" id="roastLabel">Roast Mode</span>
-                                <div class="relative inline-block w-8 align-middle select-none transition duration-200 ease-in">
-                                    <input type="checkbox" id="roastToggle" class="toggle-checkbox absolute block w-4 h-4 rounded-full bg-white border-4 border-slate-300 appearance-none cursor-pointer transition-transform duration-300" onchange="toggleRoastMode()"/>
-                                    <label for="roastToggle" class="toggle-label block overflow-hidden h-4 rounded-full bg-slate-300 cursor-pointer transition-colors duration-300"></label>
-                                </div>
+                <!-- AI Chat -->
+                <div class="card" style="padding:24px;display:flex;flex-direction:column;height:480px;" id="chatCard">
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding-bottom:16px;border-bottom:1px solid var(--border);">
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div id="aiAvatar" style="width:36px;height:36px;border-radius:10px;background:var(--ink);display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-brain" style="color:#fff;font-size:14px;"></i>
+                            </div>
+                            <div>
+                                <p style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--ink);">Monix Advisor</p>
+                                <p id="advisorMode" style="font-size:11px;color:var(--green);font-weight:600;">● Online</p>
                             </div>
                         </div>
-                        
-                        <div id="chatHistory" class="flex-grow bg-white/50 rounded-3xl p-5 mb-4 overflow-y-auto space-y-4 shadow-inner border border-white">
-                            <div class="flex gap-4">
-                                <div class="w-8 h-8 bg-violet-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-violet-500/30" id="aiAvatarColor">AI</div>
-                                <div class="bg-white text-slate-700 p-3 rounded-2xl rounded-tl-none text-sm font-medium shadow-sm border border-slate-100" id="welcomeMessage">
-                                    I've reviewed your summary. Ask me anything!
-                                </div>
+                        <div class="toggle-wrap" onclick="toggleRoastMode()">
+                            <span style="font-size:11px;font-weight:600;color:var(--muted);">Roast mode</span>
+                            <div class="toggle-track" id="roastTrack"><div class="toggle-thumb"></div></div>
+                        </div>
+                    </div>
+
+                    <div id="chatHistory" style="flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px;">
+                        <div style="display:flex;gap:8px;align-items:flex-start;">
+                            <div style="width:28px;height:28px;border-radius:8px;background:var(--ink);flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                                <i class="fas fa-brain" style="color:#fff;font-size:11px;"></i>
+                            </div>
+                            <div class="msg-ai" style="padding:10px 14px;font-size:13px;line-height:1.5;max-width:85%;" id="welcomeMsg">
+                                Hi! I've reviewed your financial data. Ask me anything — spending patterns, savings tips, or budget advice.
                             </div>
                         </div>
-
-                        <div class="flex gap-3 relative">
-                            <input type="text" id="chatInput" placeholder="Ask for financial advice..." class="flex-grow bg-white/80 border border-slate-200 rounded-full pl-5 pr-24 py-3.5 outline-none focus:border-violet-500 transition text-sm font-medium shadow-sm backdrop-blur-sm" onkeypress="handleEnter(event)">
-                            <button onclick="askAI()" id="askBtn" class="absolute right-1.5 top-1.5 bottom-1.5 bg-slate-900 hover:bg-violet-600 text-white px-6 rounded-full font-bold transition-colors shadow-md text-sm active:scale-95">Send</button>
-                        </div>
                     </div>
 
-                    <div class="lg:col-span-6 space-y-6">
-                        <div class="spatial-card p-6 flex items-center justify-between">
-                            <div class="w-1/2">
-                                <h3 class="text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-4">Spending Chart</h3>
-                                <div class="w-full h-[160px] relative"><canvas id="myChart"></canvas></div>
-                            </div>
-                            <div class="w-1/2 pl-4 max-h-[200px] overflow-y-auto space-y-2 pr-2" id="categoryBoxes"></div>
-                        </div>
-
-                        <div class="spatial-card p-6 bg-gradient-to-br from-white/70 to-rose-50/70 border-rose-100/50">
-                            <h3 class="text-rose-600 font-extrabold text-base mb-3 flex items-center gap-2"><i class="fas fa-ghost text-rose-400"></i> Active Subscriptions</h3>
-                            <div id="subscriptionsList" class="grid grid-cols-1 gap-2 max-h-[120px] overflow-y-auto pr-2"></div>
-                        </div>
+                    <div style="margin-top:12px;display:flex;gap:8px;">
+                        <input type="text" id="chatInput" class="field" style="flex:1;border-radius:var(--radius-sm);" placeholder="Ask anything..." onkeypress="if(event.key==='Enter')askAI()">
+                        <button onclick="askAI()" id="askBtn" class="btn btn-primary" style="padding:10px 18px;flex-shrink:0;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
                     </div>
                 </div>
 
-                <div class="spatial-card p-8 bg-gradient-to-br from-white/70 to-sky-50/70 border-sky-100/50 relative overflow-hidden mb-8">
-                    <div class="absolute -right-10 -top-10 text-sky-500/5 text-9xl"><i class="fas fa-bullseye"></i></div>
-                    <h3 class="text-sky-600 font-extrabold text-xl mb-6 relative z-10">Smart Goal Planner</h3>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 relative z-10">
-                        <input type="text" id="goalName" placeholder="What are you saving for? (e.g., Car)" class="w-full bg-white/90 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-500 font-bold text-slate-700 shadow-inner">
-                        <input type="number" id="goalAmount" placeholder="Amount (₹)" class="w-full bg-white/90 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-500 font-black text-slate-800 shadow-inner">
-                        <input type="number" id="goalMonths" placeholder="Months" class="w-full bg-white/90 border border-slate-200 rounded-xl px-4 py-3 text-sm outline-none focus:border-sky-500 font-black text-slate-800 shadow-inner">
-                    </div>
-                    <button onclick="calculateGoal()" class="w-full bg-sky-500 text-white font-bold py-3.5 rounded-xl text-sm hover:bg-sky-600 active:scale-[0.99] transition shadow-lg shadow-sky-500/20 relative z-10">Generate Plan</button>
-                    
-                    <div id="goalResult" class="bg-white/90 rounded-2xl p-5 border border-sky-100 shadow-sm mt-4 hidden relative z-10 backdrop-blur-md">
-                        <p class="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">Monthly Target</p>
-                        <p class="text-3xl font-black text-slate-800 tracking-tight mb-2" id="goalMonthlyAmount">₹0</p>
-                        <p class="text-xs text-slate-600 font-medium leading-relaxed" id="goalAdvice"></p>
-                    </div>
-                </div>
-            </div>
-
-            <div id="view-profile" class="app-view" style="display: none;">
-                <div class="mb-10 pl-2">
-                    <h1 class="text-5xl font-black tracking-tight text-slate-800">Profile</h1>
-                    <p class="text-slate-500 font-medium mt-2">Manage your account and preferences.</p>
-                </div>
-
-                <div class="max-w-2xl mx-auto spatial-card p-10">
-                    <div class="flex items-center gap-6 mb-8 pb-8 border-b border-slate-100/50">
-                        <div class="w-24 h-24 bg-gradient-to-br from-violet-100 to-fuchsia-100 rounded-full flex items-center justify-center text-violet-500 text-4xl shadow-inner border-4 border-white"><i class="far fa-user"></i></div>
+                <!-- Goal planner -->
+                <div class="card" style="padding:24px;">
+                    <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:16px;">Goal Calculator</p>
+                    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:16px;">
                         <div>
-                            <h2 class="text-2xl font-black text-slate-800" id="profileEmailDisplay">user@monix.com</h2>
-                            <p class="text-sm font-bold text-emerald-500 bg-emerald-50 px-3 py-1 rounded-md inline-block mt-2 border border-emerald-100">Verified Member</p>
+                            <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">What are you saving for?</label>
+                            <input type="text" id="goalName" class="field" placeholder="e.g. New laptop, Trip to Goa">
                         </div>
-                    </div>
-
-                    <div class="space-y-5 mb-8">
-                        <div class="grid grid-cols-2 gap-5">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">First Name</label>
-                                <input type="text" placeholder="Your Name" class="w-full bg-white/60 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-violet-500 transition shadow-inner">
+                                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Target amount (₹)</label>
+                                <input type="number" id="goalAmount" class="field" placeholder="50000" min="0">
                             </div>
                             <div>
-                                <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Occupation</label>
-                                <input type="text" placeholder="e.g. Software Engineer" class="w-full bg-white/60 border border-slate-200 rounded-xl px-4 py-3 text-sm font-medium outline-none focus:border-violet-500 transition shadow-inner">
+                                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Timeline (months)</label>
+                                <input type="number" id="goalMonths" class="field" placeholder="12" min="1" max="120">
                             </div>
                         </div>
-                        <button class="w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl text-sm hover:bg-slate-200 active:scale-[0.99] transition">Save Details</button>
+                        <button onclick="calculateGoal()" class="btn btn-primary" style="width:100%;padding:13px;">
+                            <i class="fas fa-calculator"></i> Calculate Plan
+                        </button>
                     </div>
 
-                    <div class="pt-8 border-t border-slate-100/50 flex justify-between items-center">
-                        <button onclick="clearHistory()" class="text-sm font-bold text-slate-500 hover:text-rose-500 transition flex items-center gap-2"><i class="fas fa-trash"></i> Reset Data</button>
-                        <button onclick="logoutUser()" class="bg-rose-50 text-rose-600 hover:bg-rose-500 hover:text-white font-bold py-3 px-8 rounded-xl text-sm transition shadow-sm flex items-center gap-2 active:scale-95"><i class="fas fa-power-off"></i> Logout</button>
+                    <div id="goalResult" style="display:none;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;">
+                        <p style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Monthly target</p>
+                        <p id="goalMonthlyAmount" style="font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:var(--ink);margin-bottom:8px;">₹0</p>
+                        <div id="goalAdvice" style="font-size:13px;color:var(--muted);line-height:1.5;"></div>
+                    </div>
+
+                    <!-- Savings breakdown -->
+                    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--border);">
+                        <p style="font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:12px;">Current Month Summary</p>
+                        <div style="display:flex;flex-direction:column;gap:8px;" id="summaryBreakdown"></div>
                     </div>
                 </div>
             </div>
-
         </div>
-    </div>
+
+        <!-- ════════════════════ PROFILE ════════════════════ -->
+        <div id="view-profile" class="view" style="display:none;">
+            <div style="margin-bottom:28px;">
+                <p style="font-size:12px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;margin-bottom:4px;">Settings</p>
+                <h1 style="font-family:'Syne',sans-serif;font-size:32px;font-weight:800;color:var(--ink);">Account</h1>
+            </div>
+
+            <div style="max-width:520px;display:flex;flex-direction:column;gap:16px;">
+
+                <div class="card" style="padding:24px;">
+                    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px;padding-bottom:20px;border-bottom:1px solid var(--border);">
+                        <div style="width:56px;height:56px;border-radius:16px;background:var(--accent-light);display:flex;align-items:center;justify-content:center;">
+                            <i class="far fa-user" style="font-size:22px;color:var(--accent);"></i>
+                        </div>
+                        <div>
+                            <p id="profileEmailDisplay" style="font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:var(--ink);">—</p>
+                            <span class="badge badge-green" style="margin-top:4px;"><i class="fas fa-circle" style="font-size:8px;"></i> Active account</span>
+                        </div>
+                    </div>
+
+                    <div style="display:flex;flex-direction:column;gap:10px;">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Display Name</label>
+                                <input type="text" id="profileName" class="field" placeholder="Your name">
+                            </div>
+                            <div>
+                                <label style="display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Occupation</label>
+                                <input type="text" id="profileOccupation" class="field" placeholder="e.g. Engineer">
+                            </div>
+                        </div>
+                        <button onclick="saveProfile()" class="btn btn-ghost" style="width:100%;">Save Profile</button>
+                    </div>
+                </div>
+
+                <div class="card" style="padding:24px;">
+                    <p style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:4px;">Data Management</p>
+                    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">Upload additional statements or reset all your data.</p>
+                    <div style="display:flex;flex-direction:column;gap:8px;">
+                        <button onclick="document.getElementById('pdfFile').click()" class="btn btn-ghost" style="width:100%;">
+                            <i class="fas fa-plus"></i> Upload New Statement
+                        </button>
+                        <button onclick="clearHistory()" class="btn btn-danger" style="width:100%;">
+                            <i class="fas fa-trash"></i> Delete All Data
+                        </button>
+                    </div>
+                </div>
+
+                <div class="card" style="padding:24px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <div>
+                            <p style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--ink);">Session</p>
+                            <p style="font-size:13px;color:var(--muted);">You are securely logged in.</p>
+                        </div>
+                        <button onclick="logoutUser()" class="btn btn-danger"><i class="fas fa-sign-out-alt"></i> Logout</button>
+                    </div>
+                </div>
+
+                <div style="text-align:center;padding:8px 0;">
+                    <span style="font-size:11px;color:var(--muted);">Monix v2.0 · Data stored in Firebase Firestore · <span id="txTotalCount">0</span> transactions loaded</span>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /mainApp -->
+</div>
 
 <script>
-// ==========================================
-// 🛑 IMPORTANT: PASTE YOUR RENDER LINK HERE!
-// ==========================================
-// Change this link to your actual monix-backend URL!
-const BACKEND_URL = "https://YOUR-RENDER-LINK-HERE.onrender.com";
+// ═══════════════════════════════════════════════════════════════
+// CONFIG — Replace with your actual backend URL before deploying
+// ═══════════════════════════════════════════════════════════════
+const BACKEND_URL = "https://monix-backend.onrender.com";
 
-
-function initTiltEffect() {
-    const cards = document.querySelectorAll('.spatial-card');
-    cards.forEach(card => {
-        card.addEventListener('mousemove', e => {
-            const rect = card.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            const centerX = rect.width / 2;
-            const centerY = rect.height / 2;
-            const rotateX = ((y - centerY) / centerY) * -4; 
-            const rotateY = ((x - centerX) / centerX) * 4;
-            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
-        });
-        card.addEventListener('mouseleave', () => {
-            card.style.transform = `perspective(1000px) rotateX(0) rotateY(0)`;
-        });
-    });
+if (BACKEND_URL.includes('YOUR-RENDER')) {
+    console.warn('[Monix] BACKEND_URL is not configured. Set it in index.html before deploying.');
 }
-document.addEventListener('DOMContentLoaded', initTiltEffect);
 
+// ── Firebase ─────────────────────────────────────────────────
 const firebaseConfig = {
     apiKey: "AIzaSyC173uyOYugWgjM1cPvcw04iK_bprzHZIY",
     authDomain: "monix-c9216.firebaseapp.com",
@@ -369,484 +689,725 @@ const firebaseConfig = {
     messagingSenderId: "167469208341",
     appId: "1:167469208341:web:15011c240fecbfbb55cf1c"
 };
-
-if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-}
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
 
-let isLoginMode = true; 
-let chartObj = null;
-let globalTransactions = []; 
-let allTimeTransactions = []; 
+// ── State ─────────────────────────────────────────────────────
+let allTimeTransactions = [];
+let globalTransactions  = [];
 let currentIncome = 0;
-let currentSpend = 0;
-let isRoastMode = false; // Added this!
+let currentSpend  = 0;
+let chartObj = null;
+let isRoastMode = false;
+let isLoginMode = true;
+let isUploading = false;
+let predictionsCache = null;
+const CAT_COLORS = ['#4f46e5','#0ea5e9','#10b981','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#ec4899','#f97316','#64748b'];
 
-// Added the missing function for Roast Mode!
-function toggleRoastMode() {
-    isRoastMode = document.getElementById('roastToggle').checked;
-    const label = document.getElementById('roastLabel');
-    const chatWrapper = document.getElementById('chatContainerWrapper');
-    
-    if (isRoastMode) {
-        label.innerText = "ROAST MODE 🔥";
-        label.className = "text-[9px] font-black text-rose-600 uppercase tracking-widest";
-        chatWrapper.classList.add('roast-active');
-        document.getElementById('aiAvatarColor').className = "w-8 h-8 bg-rose-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-rose-500/30";
-        document.getElementById('welcomeMessage').innerText = "Oh look, it's you. Ready to get roasted on your terrible spending habits?";
-    } else {
-        label.innerText = "Advisor Mode";
-        label.className = "text-[9px] font-bold text-slate-500 uppercase tracking-widest";
-        chatWrapper.classList.remove('roast-active');
-        document.getElementById('aiAvatarColor').className = "w-8 h-8 bg-violet-500 rounded-full flex-shrink-0 flex items-center justify-center text-white text-xs font-bold shadow-lg shadow-violet-500/30";
-        document.getElementById('welcomeMessage').innerText = "I've reviewed your summary. Ask me anything!";
-    }
-}
-
+// ── Auth State ────────────────────────────────────────────────
 auth.onAuthStateChanged(user => {
     if (user) {
-        document.getElementById('loginSection').style.display = 'none';
-        document.getElementById('navDock').style.display = 'flex'; 
-        document.getElementById('profileEmailDisplay').innerText = user.email; 
-        fetchHistory(); 
+        show('navDock', 'flex');
+        hide('loginSection');
+        document.getElementById('profileEmailDisplay').textContent = user.email;
+        loadProfile();
+        fetchHistory();
     } else {
-        document.getElementById('loginSection').style.display = 'block';
-        document.getElementById('mainAppContainer').style.display = 'none';
-        document.getElementById('emptyDashboardState').style.display = 'none';
-        document.getElementById('navDock').style.display = 'none'; 
+        hide('navDock');
+        hide('mainApp');
+        hide('emptyState');
+        show('loginSection');
     }
 });
 
-function switchView(viewName) {
-    if (allTimeTransactions.length === 0 && viewName !== 'profile') {
-        document.getElementById('mainAppContainer').style.display = "none";
-        document.getElementById('emptyDashboardState').style.display = "block";
-        return;
-    }
-
-    document.getElementById('emptyDashboardState').style.display = "none";
-    document.getElementById('mainAppContainer').style.display = "block";
-
-    ['dash', 'ledger', 'goals', 'profile'].forEach(v => {
-        document.getElementById('view-' + v).style.display = 'none';
-    });
-
-    document.getElementById('view-' + viewName).style.display = 'block';
-
-    document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active', 'text-violet-600'));
-    const activeBtn = document.getElementById('nav-' + viewName);
-    if(activeBtn) activeBtn.classList.add('active', 'text-violet-600');
-
-    window.scrollTo(0,0);
-}
-
+// ── Auth helpers ──────────────────────────────────────────────
 function toggleMode() {
     isLoginMode = !isLoginMode;
-    document.getElementById('formTitle').innerText = isLoginMode ? "Monix Secure" : "Create Account";
-    document.getElementById('actionBtn').innerText = isLoginMode ? "Sign In" : "Sign Up";
-    document.getElementById('toggleText').innerText = isLoginMode ? "Don't have an account?" : "Already have an account?";
-    document.getElementById('toggleBtn').innerText = isLoginMode ? "Sign Up" : "Sign In";
+    document.getElementById('formTitle').textContent    = isLoginMode ? 'Welcome back' : 'Create account';
+    document.getElementById('actionBtn').textContent    = isLoginMode ? 'Sign In' : 'Sign Up';
+    document.getElementById('toggleText').textContent   = isLoginMode ? "Don't have an account?" : 'Already have an account?';
+    document.getElementById('toggleBtn').textContent    = isLoginMode ? 'Sign up' : 'Sign in';
 }
 
 function handleAuth() {
-    const email = document.getElementById('emailInput').value;
+    const email    = document.getElementById('emailInput').value.trim();
     const password = document.getElementById('passwordInput').value;
-    if(!email || !password) return updateMsg("Enter email/password", "text-rose-500");
-    if (isLoginMode) auth.signInWithEmailAndPassword(email, password).catch(e => updateMsg(e.message, "text-rose-500"));
-    else auth.createUserWithEmailAndPassword(email, password).catch(e => updateMsg(e.message, "text-rose-500"));
+    if (!email || !password) return toast('Enter email and password', 'error');
+    if (password.length < 6) return toast('Password must be at least 6 characters', 'error');
+
+    const btn = document.getElementById('actionBtn');
+    btn.disabled = true;
+    btn.textContent = isLoginMode ? 'Signing in...' : 'Creating account...';
+
+    const action = isLoginMode
+        ? auth.signInWithEmailAndPassword(email, password)
+        : auth.createUserWithEmailAndPassword(email, password);
+
+    action
+        .then(() => toast('Logged in successfully', 'success'))
+        .catch(e => toast(friendlyAuthError(e.code), 'error'))
+        .finally(() => { btn.disabled = false; btn.textContent = isLoginMode ? 'Sign In' : 'Sign Up'; });
 }
 
-function logoutUser() { auth.signOut(); }
-
-function updateFileName() {
-    const file = document.getElementById('pdfFile').files[0];
-    if(file) updateMsg("File selected. Scanning...", "text-violet-500");
+function friendlyAuthError(code) {
+    const map = {
+        'auth/user-not-found': 'No account found with this email.',
+        'auth/wrong-password': 'Incorrect password.',
+        'auth/email-already-in-use': 'An account with this email already exists.',
+        'auth/invalid-email': 'Please enter a valid email address.',
+        'auth/too-many-requests': 'Too many attempts. Please try again later.',
+        'auth/network-request-failed': 'Network error. Check your connection.',
+    };
+    return map[code] || 'Authentication failed. Please try again.';
 }
 
-function updateMsg(txt, colorClass) {
-    const s = document.getElementById('statusMsg');
-    s.textContent = txt;
-    s.className = `text-[10px] font-bold uppercase tracking-widest text-slate-600 bg-white/90 backdrop-blur-md px-5 py-2.5 rounded-full shadow-lg border border-white transition-all ${colorClass}`;
-    s.style.display = "block";
-    setTimeout(() => { s.style.display = "none"; }, 4000);
-}
+function logoutUser() { auth.signOut().then(() => toast('Signed out', 'info')); }
 
-async function processPDF() {
-    const file = document.getElementById('pdfFile').files[0];
+// ── Profile ───────────────────────────────────────────────────
+async function loadProfile() {
     const user = auth.currentUser;
+    if (!user) return;
+    try {
+        const doc = await db.collection('profiles').doc(user.uid).get();
+        if (doc.exists) {
+            const d = doc.data();
+            document.getElementById('profileName').value = d.name || '';
+            document.getElementById('profileOccupation').value = d.occupation || '';
+        }
+    } catch {}
+}
 
-    if(!user) return updateMsg("Please log in first", "text-rose-500");
-    if(!file) return updateMsg("Select a file first", "text-rose-500");
-    if(file.type !== "application/pdf") return updateMsg("⚠️ Error: PDF only!", "text-rose-500"); 
+async function saveProfile() {
+    const user = auth.currentUser;
+    if (!user) return;
+    try {
+        await db.collection('profiles').doc(user.uid).set({
+            name: document.getElementById('profileName').value.trim(),
+            occupation: document.getElementById('profileOccupation').value.trim(),
+            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+        }, { merge: true });
+        toast('Profile saved', 'success');
+    } catch { toast('Failed to save profile', 'error'); }
+}
 
-    const formData = new FormData();
-    formData.append('pdfFile', file);
-    updateMsg("AI Scanning Document...", "text-violet-500 animate-pulse");
+// ── PDF Upload ────────────────────────────────────────────────
+function onFileSelected() {
+    const file = document.getElementById('pdfFile').files[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') return toast('Please select a PDF file', 'error');
+    if (file.size > 15 * 1024 * 1024) return toast('File is too large (max 15 MB)', 'error');
+    processPDF(file);
+}
+
+async function processPDF(file) {
+    if (isUploading) return toast('Already processing a file, please wait', 'info');
+    const user = auth.currentUser;
+    if (!user) return toast('Please log in first', 'error');
+
+    isUploading = true;
+    showLoading('Extracting transactions with AI...');
+    document.querySelector('.nav-upload').disabled = true;
 
     try {
-        // 🌟 Uses the dynamic BACKEND_URL constant
-        const res = await fetch(`${BACKEND_URL}/upload`, { method: 'POST', body: formData });
-        if (!res.ok) throw new Error("Server Error");
+        const idToken = await user.getIdToken();
+        const formData = new FormData();
+        formData.append('pdfFile', file);
+
+        const res = await fetch(`${BACKEND_URL}/upload`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${idToken}` },
+            body: formData,
+        });
+
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error || `Server error (${res.status})`);
+        }
+
         const parsedData = await res.json();
+        if (!Array.isArray(parsedData) || parsedData.length === 0) {
+            throw new Error('No transactions found in this PDF. Make sure it is a text-based bank statement.');
+        }
 
-        const docRef = db.collection('users').doc(user.uid);
-        const doc = await docRef.get();
-        let existingData = doc.exists ? (doc.data().transactions || []) : [];
-        let combinedData = [...existingData, ...parsedData];
+        // Deduplicate: use a key of date+description+amount
+        const existingKeys = new Set(allTimeTransactions.map(t => `${t.date}|${t.description}|${t.amount}`));
+        const newTxns = parsedData.filter(t => !existingKeys.has(`${t.date}|${t.description}|${t.amount}`));
 
-        await docRef.set({ transactions: combinedData, lastUpdated: firebase.firestore.FieldValue.serverTimestamp() });
+        if (newTxns.length === 0) {
+            hideLoading();
+            toast('This statement has already been uploaded (no new transactions found)', 'info');
+            return;
+        }
 
-        allTimeTransactions = combinedData;
+        const combined = [...allTimeTransactions, ...newTxns];
+        await db.collection('users').doc(user.uid).set({
+            transactions: combined,
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+
+        allTimeTransactions = combined;
+        predictionsCache = null; // invalidate predictions cache
         renderData(allTimeTransactions);
-        switchView('dash'); 
-        updateMsg("Saved Securely to Cloud", "text-emerald-500");
+        switchView('dash');
+        hideLoading();
+        toast(`${newTxns.length} new transactions imported`, 'success');
 
-    } catch (e) { 
-        console.error(e);
-        updateMsg("Error parsing PDF", "text-rose-500"); 
+    } catch (e) {
+        hideLoading();
+        toast(e.message || 'Failed to process PDF', 'error');
+    } finally {
+        isUploading = false;
+        document.querySelector('.nav-upload').disabled = false;
+        document.getElementById('pdfFile').value = ''; // allow re-upload of same file
     }
 }
 
+// ── Fetch History ─────────────────────────────────────────────
 async function fetchHistory() {
     const user = auth.currentUser;
-    if(!user) return;
+    if (!user) return;
 
-    updateMsg("Loading Secure Cloud Data...", "text-sky-500 animate-pulse");
     try {
         const doc = await db.collection('users').doc(user.uid).get();
-        
-        if (doc.exists && doc.data().transactions && doc.data().transactions.length > 0) {
+        if (doc.exists && doc.data().transactions?.length > 0) {
             allTimeTransactions = doc.data().transactions;
+
+            // Show last updated
+            const lu = doc.data().lastUpdated?.toDate();
+            if (lu) document.getElementById('lastUpdatedBadge').textContent = 'Updated ' + lu.toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric' });
+
             renderData(allTimeTransactions);
-            switchView('dash'); 
-            updateMsg("Dashboard Ready", "text-emerald-500");
+            switchView('dash');
         } else {
             allTimeTransactions = [];
-            switchView('dash'); 
+            hide('mainApp');
+            show('emptyState');
         }
-    } catch (e) { 
-        console.error(e);
-        switchView('dash'); 
-        updateMsg("Cloud Connection Error", "text-rose-500"); 
+    } catch (e) {
+        console.error('fetchHistory:', e);
+        toast('Failed to load cloud data', 'error');
     }
 }
 
+// ── Clear History ─────────────────────────────────────────────
 async function clearHistory() {
     const user = auth.currentUser;
-    if(!user) return;
+    if (!user) return;
+    if (!confirm('Permanently delete all your financial data? This cannot be undone.')) return;
 
-    if(!confirm("Are you sure you want to permanently delete your data?")) return;
     try {
         await db.collection('users').doc(user.uid).delete();
-        allTimeTransactions = []; 
-        switchView('dash'); 
-        updateMsg("Cloud Data Erased", "text-slate-500");
-    } catch (e) {}
-}
-
-async function askAI() {
-    const inputField = document.getElementById('chatInput');
-    const question = inputField.value.trim();
-    if(!question) return;
-
-    const chatHistory = document.getElementById('chatHistory');
-    chatHistory.innerHTML += `
-        <div class="flex gap-3 justify-end">
-            <div class="${isRoastMode ? 'bg-red-500 shadow-red-500/30' : 'bg-slate-900 shadow-slate-900/30'} text-white p-3 rounded-2xl rounded-tr-none text-xs font-medium max-w-[80%] shadow-md">${question}</div>
-            <div class="w-8 h-8 bg-slate-200 rounded-full flex-shrink-0 flex items-center justify-center text-slate-600 text-[10px] font-bold shadow-inner">You</div>
-        </div>
-    `;
-    inputField.value = '';
-    chatHistory.scrollTop = chatHistory.scrollHeight;
-
-    const typingId = 'typing-' + Date.now();
-    chatHistory.innerHTML += `
-        <div id="${typingId}" class="flex gap-3">
-            <div class="w-8 h-8 ${isRoastMode ? 'bg-red-500 shadow-red-500/30' : 'bg-violet-500 shadow-violet-500/30'} rounded-full flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold shadow-md">AI</div>
-            <div class="bg-white text-slate-500 p-3 rounded-2xl rounded-tl-none text-xs font-medium max-w-[80%] flex items-center gap-1 shadow-sm border border-slate-100">
-                <i class="fas fa-circle text-[4px] animate-bounce"></i>
-                <i class="fas fa-circle text-[4px] animate-bounce" style="animation-delay: 0.1s"></i>
-                <i class="fas fa-circle text-[4px] animate-bounce" style="animation-delay: 0.2s"></i>
-            </div>
-        </div>
-    `;
-    chatHistory.scrollTop = chatHistory.scrollHeight;
-
-    let finalQuestion = question;
-    if(isRoastMode) finalQuestion += " (Reply to this in a highly sarcastic, roasting, and slightly mean tone pointing out bad spending habits. Keep it short.)";
-
-    try {
-        // 🌟 Uses the dynamic BACKEND_URL constant instead of localhost!
-        const res = await fetch(`${BACKEND_URL}/chat`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ question: finalQuestion, history: allTimeTransactions })
-        });
-        const data = await res.json();
-        
-        document.getElementById(typingId).remove();
-        chatHistory.innerHTML += `
-            <div class="flex gap-3">
-                <div class="w-8 h-8 ${isRoastMode ? 'bg-red-500 shadow-red-500/30' : 'bg-violet-500 shadow-violet-500/30'} rounded-full flex-shrink-0 flex items-center justify-center text-white text-[10px] font-bold shadow-md">AI</div>
-                <div class="bg-white text-slate-700 p-3 rounded-2xl rounded-tl-none text-xs font-medium max-w-[80%] shadow-sm border border-slate-100 leading-relaxed">
-                    ${data.answer}
-                </div>
-            </div>
-        `;
-        chatHistory.scrollTop = chatHistory.scrollHeight;
+        // Only clear local state AFTER cloud delete succeeds
+        allTimeTransactions = [];
+        globalTransactions = [];
+        predictionsCache = null;
+        hide('mainApp');
+        show('emptyState');
+        toast('All data deleted', 'info');
     } catch (e) {
-        document.getElementById(typingId).remove();
-        chatHistory.innerHTML += `<div class="text-rose-500 text-[10px] text-center mt-2">Error connecting to AI.</div>`;
+        toast('Failed to delete data. Please try again.', 'error');
     }
 }
 
-async function fetchPredictions() {
-    const list = document.getElementById('predictionsList');
-    try {
-        // 🌟 Uses the dynamic BACKEND_URL constant instead of localhost!
-        const res = await fetch(`${BACKEND_URL}/predict`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ history: allTimeTransactions })
-        });
-        const preds = await res.json();
-        list.innerHTML = "";
-        if(preds.length === 0) return list.innerHTML = `<p class="text-xs text-slate-500 font-medium italic mt-2">Need more data to predict.</p>`;
-        preds.forEach(p => {
-            list.innerHTML += `
-            <div class="flex justify-between items-center bg-white/80 p-3 rounded-2xl shadow-sm border border-emerald-100">
-                <span class="font-bold text-slate-700 text-xs truncate max-w-[60%]">${p.name}</span>
-                <span class="font-black text-rose-500 text-xs bg-rose-50 px-2 py-0.5 rounded-md">-₹${p.amount.toLocaleString('en-IN')}</span>
-            </div>`;
-        });
-    } catch (e) { list.innerHTML = `<p class="text-[10px] font-bold text-rose-500 mt-2">Failed to load AI predictions.</p>`; }
+// ── View Switching ────────────────────────────────────────────
+function switchView(name) {
+    if (allTimeTransactions.length === 0 && name !== 'profile') {
+        hide('mainApp');
+        show('emptyState');
+        return;
+    }
+    hide('emptyState');
+    show('mainApp');
+    ['dash','ledger','goals','profile'].forEach(v => hide('view-' + v));
+    show('view-' + name);
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    const btn = document.getElementById('nav-' + name);
+    if (btn) btn.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// ── Render Data ───────────────────────────────────────────────
 function renderData(transactions) {
-    globalTransactions = transactions; 
-    currentSpend = 0; currentIncome = 0; let cats = {};
+    globalTransactions = transactions;
+    currentSpend = 0; currentIncome = 0;
+    let cats = {}; let incCount = 0; let expCount = 0;
 
     transactions.forEach(t => {
         if (typeof t.amount !== 'number' || isNaN(t.amount)) return;
-        if(t.amount < 0) {
+        if (t.amount < 0) {
             currentSpend += Math.abs(t.amount);
+            expCount++;
             cats[t.category || 'Other'] = (cats[t.category || 'Other'] || 0) + Math.abs(t.amount);
-        } else { currentIncome += t.amount; }
-    });
-
-    document.getElementById('totalExp').textContent = `₹${currentSpend.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-    document.getElementById('totalInc').textContent = `₹${currentIncome.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
-
-    renderHealthScore(currentIncome, currentSpend);
-
-    const catContainer = document.getElementById('categoryBoxes');
-    catContainer.innerHTML = ""; 
-    const sortedCats = Object.entries(cats).sort((a, b) => b[1] - a[1]);
-    
-    renderBudgetBars(sortedCats, currentSpend);
-    detectSubscriptions(transactions);
-
-    const bgColors = ['bg-rose-50', 'bg-sky-50', 'bg-amber-50', 'bg-emerald-50', 'bg-violet-50'];
-    const textColors = ['text-rose-600', 'text-sky-600', 'text-amber-600', 'text-emerald-600', 'text-violet-600'];
-    const chartHex = ['#f43f5e', '#0ea5e9', '#f59e0b', '#10b981', '#8b5cf6'];
-
-    sortedCats.forEach(([categoryName, totalSpent], index) => {
-        const percentage = Math.round((totalSpent / currentSpend) * 100) || 0;
-        const text = textColors[index % textColors.length];
-        
-        catContainer.innerHTML += `
-            <div class="p-3 bg-white/60 rounded-xl border border-white shadow-sm flex justify-between items-center">
-                <h5 class="${text} text-[10px] font-black uppercase tracking-widest truncate">${categoryName}</h5>
-                <p class="text-sm font-black text-slate-800 tracking-tight">₹${totalSpent.toLocaleString('en-IN')}</p>
-            </div>
-        `;
-    });
-
-    initChart(cats, chartHex);
-    fetchPredictions();
-    buildCalendarStrip(transactions);
-    renderTable(transactions);
-}
-
-function renderHealthScore(income, spend) {
-    let score = 0;
-    if (income === 0 && spend > 0) score = 20; 
-    else if (income > 0) score = Math.max(10, Math.min(100, Math.round(100 - ((spend / income) * 100))));
-    
-    let label = "Excellent"; let color = "text-emerald-400";
-    if(score < 40) { label = "Warning"; color = "text-rose-400"; }
-    else if(score < 70) { label = "Fair"; color = "text-amber-400"; }
-
-    document.getElementById('healthScoreText').innerText = score;
-    document.getElementById('healthScoreLabel').innerText = label;
-    document.getElementById('healthScoreLabel').className = `text-[9px] font-bold uppercase tracking-widest mt-1 ${color}`;
-    
-    const circle = document.getElementById('healthCircle');
-    const circumference = 339; 
-    const offset = circumference - (score / 100) * circumference;
-    circle.style.strokeDashoffset = offset;
-    circle.className.baseVal = `${color} transition-all duration-1000 ease-out`;
-}
-
-function renderBudgetBars(sortedCats, totalSpend) {
-    const container = document.getElementById('budgetBarsContainer');
-    container.innerHTML = "";
-    if(sortedCats.length === 0) return container.innerHTML = "<p class='text-xs text-slate-400'>No spending data yet.</p>";
-
-    const top3 = sortedCats.slice(0, 3);
-    top3.forEach(([cat, amount]) => {
-        let mockLimit = amount * 1.2; 
-        let percent = (amount / mockLimit) * 100;
-        let barColor = percent > 80 ? 'bg-rose-500' : (percent > 60 ? 'bg-amber-500' : 'bg-emerald-500');
-
-        container.innerHTML += `
-            <div class="bg-white/50 p-4 rounded-2xl border border-white shadow-sm">
-                <div class="flex justify-between text-[10px] font-bold text-slate-600 mb-2 uppercase tracking-wide">
-                    <span>${cat}</span>
-                    <span>₹${amount.toLocaleString()} <span class="text-slate-400">/ ₹${Math.round(mockLimit).toLocaleString()}</span></span>
-                </div>
-                <div class="w-full bg-slate-200/50 rounded-full h-2 shadow-inner">
-                    <div class="${barColor} h-2 rounded-full shadow-sm" style="width: ${Math.min(percent, 100)}%"></div>
-                </div>
-            </div>
-        `;
-    });
-}
-
-function detectSubscriptions(transactions) {
-    const list = document.getElementById('subscriptionsList');
-    list.innerHTML = "";
-    const keywords = ['netflix', 'spotify', 'amazon', 'prime', 'gym', 'swiggy', 'zomato', 'apple', 'adobe'];
-    
-    let found = [];
-    transactions.forEach(t => {
-        if(t.amount >= 0) return;
-        let desc = (t.description || "").toLowerCase();
-        if(keywords.some(k => desc.includes(k))) {
-            if(!found.find(f => f.desc === desc)) found.push({ desc: t.description, amount: Math.abs(t.amount) });
+        } else {
+            currentIncome += t.amount;
+            incCount++;
         }
     });
 
-    if(found.length === 0) return list.innerHTML = `<p class="text-xs italic text-slate-400 font-medium">No active subscriptions detected.</p>`;
+    const savings = currentIncome - currentSpend;
+    const savingsRate = currentIncome > 0 ? Math.round((savings / currentIncome) * 100) : 0;
 
-    found.forEach(sub => {
-        list.innerHTML += `
-        <div class="flex justify-between items-center bg-white/80 p-3 rounded-2xl shadow-sm border border-rose-50">
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-lg bg-rose-50 text-rose-500 flex items-center justify-center text-xs"><i class="fas fa-sync-alt"></i></div>
-                <span class="font-bold text-slate-700 text-xs truncate max-w-[100px]">${sub.desc}</span>
-            </div>
-            <div class="flex flex-col items-end gap-1">
-                <span class="font-black text-rose-500 text-xs">₹${sub.amount.toLocaleString()}</span>
-                <button class="text-[8px] font-bold uppercase tracking-widest bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded hover:bg-rose-500 hover:text-white transition cursor-pointer">Cancel</button>
-            </div>
-        </div>`;
+    // Stat cards
+    document.getElementById('totalInc').textContent  = fmt(currentIncome);
+    document.getElementById('totalExp').textContent  = fmt(currentSpend);
+    document.getElementById('totalSavings').textContent = fmt(Math.abs(savings));
+    document.getElementById('incTxCount').textContent  = `${incCount} credit${incCount !== 1 ? 's' : ''}`;
+    document.getElementById('expTxCount').textContent  = `${expCount} debit${expCount !== 1 ? 's' : ''}`;
+    document.getElementById('savingsRate').textContent = `${savingsRate}% savings rate`;
+    document.getElementById('txTotalCount').textContent = transactions.length;
+
+    const savAccent = document.getElementById('savingsAccent');
+    const savEl = document.getElementById('totalSavings');
+    if (savings < 0) {
+        savAccent.style.background = 'var(--red)';
+        savEl.style.color = 'var(--red)';
+    } else {
+        savAccent.style.background = 'var(--green)';
+        savEl.style.color = 'var(--green)';
+    }
+
+    renderHealthScore(currentIncome, currentSpend);
+    renderChart(cats);
+    renderBudgetBars(Object.entries(cats).sort((a,b) => b[1]-a[1]));
+    detectSubscriptions(transactions);
+    renderSummaryBreakdown(savings, savingsRate);
+    buildCalendarStrip(transactions);
+    renderTable(transactions);
+    fetchPredictions();
+
+    // Goals summary
+    if (typeof updateGoalSummary === 'function') updateGoalSummary();
+}
+
+// ── Health Score ──────────────────────────────────────────────
+function renderHealthScore(income, spend) {
+    let score = 0;
+    if (income === 0 && spend > 0) score = 10;
+    else if (income > 0) score = Math.max(0, Math.min(100, Math.round(((income - spend) / income) * 100)));
+
+    const circle = document.getElementById('healthCircle');
+    const circ = 251.2;
+    circle.style.strokeDashoffset = circ - (score / 100) * circ;
+
+    let color, label;
+    if (score >= 70) { color = '#059669'; label = 'Excellent'; }
+    else if (score >= 40) { color = '#d97706'; label = 'Fair'; }
+    else { color = '#dc2626'; label = 'At Risk'; }
+
+    circle.style.stroke = color;
+    document.getElementById('healthScoreText').textContent = score;
+    document.getElementById('healthScoreLabel').textContent = label;
+    document.getElementById('healthScoreLabel').style.color = color;
+}
+
+// ── Chart ─────────────────────────────────────────────────────
+function renderChart(cats) {
+    if (chartObj) chartObj.destroy();
+    const sorted = Object.entries(cats).sort((a,b) => b[1]-a[1]);
+    const labels = sorted.map(([k]) => k);
+    const values = sorted.map(([,v]) => v);
+    const colors = labels.map((_,i) => CAT_COLORS[i % CAT_COLORS.length]);
+
+    const ctx = document.getElementById('myChart').getContext('2d');
+    chartObj = new Chart(ctx, {
+        type: 'doughnut',
+        data: { labels, datasets: [{ data: values, backgroundColor: colors, borderWidth: 0, hoverOffset: 8 }] },
+        options: {
+            cutout: '72%',
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    backgroundColor: '#fff',
+                    titleColor: '#0a0a0f',
+                    bodyColor: '#6b6b80',
+                    borderColor: 'rgba(0,0,0,0.08)',
+                    borderWidth: 1,
+                    padding: 10,
+                    cornerRadius: 10,
+                    callbacks: {
+                        label: ctx => ` ${fmt(ctx.raw)} (${Math.round(ctx.raw / values.reduce((a,b)=>a+b,0) * 100)}%)`
+                    }
+                }
+            }
+        }
+    });
+
+    // Legend
+    const legend = document.getElementById('categoryLegend');
+    legend.innerHTML = '';
+    labels.slice(0, 7).forEach((label, i) => {
+        const pct = Math.round(values[i] / values.reduce((a,b)=>a+b,0) * 100);
+        legend.innerHTML += `
+            <div style="display:flex;align-items:center;gap:8px;">
+                <div style="width:8px;height:8px;border-radius:2px;background:${colors[i]};flex-shrink:0;"></div>
+                <span style="font-size:12px;color:var(--ink-3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${label}</span>
+                <span style="font-size:12px;font-weight:600;color:var(--muted);flex-shrink:0;">${pct}%</span>
+            </div>`;
     });
 }
 
-function calculateGoal() {
-    const amount = parseFloat(document.getElementById('goalAmount').value);
-    const months = parseFloat(document.getElementById('goalMonths').value);
-    const resBox = document.getElementById('goalResult');
-    
-    if(!amount || !months || months <= 0) return alert("Enter valid goal numbers.");
+// ── Budget Bars ───────────────────────────────────────────────
+function renderBudgetBars(sortedCats) {
+    const container = document.getElementById('budgetBarsContainer');
+    container.innerHTML = '';
+    if (!sortedCats.length) return container.innerHTML = `<p style="font-size:13px;color:var(--muted);">No spending data yet.</p>`;
 
-    const monthlyTarget = amount / months;
-    document.getElementById('goalMonthlyAmount').innerText = `₹${Math.round(monthlyTarget).toLocaleString('en-IN')}`;
-    
-    const leftover = currentIncome - currentSpend;
-    let advice = "";
-    if (currentIncome === 0) advice = "Tip: Log some income to see if this is affordable!";
-    else if (leftover >= monthlyTarget) advice = `<span class="text-emerald-500 font-bold">Achievable!</span> You have ₹${leftover.toLocaleString()} remaining this month.`;
-    else advice = `<span class="text-rose-500 font-bold">Tight budget!</span> You need ₹${Math.round(monthlyTarget - leftover).toLocaleString()} more per month.`;
-    
-    document.getElementById('goalAdvice').innerHTML = advice;
-    resBox.classList.remove('hidden');
+    const total = sortedCats.reduce((s,[,v]) => s + v, 0);
+    sortedCats.slice(0, 5).forEach(([cat, amount]) => {
+        const pct = total > 0 ? Math.round((amount / total) * 100) : 0;
+        container.innerHTML += `
+            <div>
+                <div style="display:flex;justify-content:space-between;margin-bottom:5px;">
+                    <span style="font-size:13px;font-weight:500;color:var(--ink-3);">${cat}</span>
+                    <span style="font-size:13px;font-weight:600;color:var(--ink);">${fmt(amount)}</span>
+                </div>
+                <div class="progress-track" style="height:6px;">
+                    <div class="progress-fill" style="width:${pct}%;background:var(--accent);"></div>
+                </div>
+            </div>`;
+    });
 }
 
-function handleEnter(e) { if (e.key === 'Enter') askAI(); }
+// ── Summary Breakdown ─────────────────────────────────────────
+function renderSummaryBreakdown(savings, rate) {
+    const el = document.getElementById('summaryBreakdown');
+    if (!el) return;
+    const rows = [
+        { label: 'Income', value: fmt(currentIncome), color: 'var(--green)' },
+        { label: 'Expenses', value: fmt(currentSpend), color: 'var(--red)' },
+        { label: 'Net savings', value: fmt(Math.abs(savings)), color: savings >= 0 ? 'var(--accent)' : 'var(--red)' },
+        { label: 'Savings rate', value: `${rate}%`, color: rate >= 20 ? 'var(--green)' : rate >= 0 ? 'var(--amber)' : 'var(--red)' },
+    ];
+    el.innerHTML = rows.map(r => `
+        <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:13px;color:var(--muted);">${r.label}</span>
+            <span style="font-size:13px;font-weight:700;color:${r.color};">${r.value}</span>
+        </div>`).join('');
+}
 
-function renderTable(transactionsToShow) {
+// ── Subscriptions ─────────────────────────────────────────────
+function detectSubscriptions(transactions) {
+    const el = document.getElementById('subscriptionsList');
+    el.innerHTML = '';
+    const KEYWORDS = ['netflix','spotify','amazon prime','prime video','disney','hotstar','gym','swiggy','zomato','apple','adobe','youtube premium','google one'];
+    const found = [];
+    const seen = new Set();
+
+    transactions.forEach(t => {
+        if (t.amount >= 0) return;
+        const desc = (t.description || '').toLowerCase();
+        const match = KEYWORDS.find(k => desc.includes(k));
+        if (match && !seen.has(match)) {
+            seen.add(match);
+            found.push({ desc: t.description, amount: Math.abs(t.amount) });
+        }
+    });
+
+    if (!found.length) {
+        el.innerHTML = `<p style="font-size:13px;color:var(--muted);font-style:italic;">No subscriptions detected.</p>`;
+        return;
+    }
+
+    found.forEach(sub => {
+        el.innerHTML += `
+            <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <i class="fas fa-refresh" style="color:var(--muted);font-size:11px;"></i>
+                    <span style="font-size:13px;font-weight:500;color:var(--ink-3);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${sub.desc}</span>
+                </div>
+                <span style="font-size:13px;font-weight:700;color:var(--red);">${fmt(sub.amount)}</span>
+            </div>`;
+    });
+}
+
+// ── Calendar strip ────────────────────────────────────────────
+function buildCalendarStrip(txData) {
+    const strip = document.getElementById('calendarStrip');
+    strip.innerHTML = `<button onclick="filterByMonth('All')" class="btn btn-ghost" style="padding:5px 12px;font-size:11px;border-radius:100px;flex-shrink:0;">All</button>`;
+
+    const months = new Map();
+    txData.forEach(t => {
+        if (!t.date) return;
+        const d = new Date(t.date);
+        if (isNaN(d)) return;
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+        if (!months.has(key)) months.set(key, d.toLocaleDateString('en-IN', { month:'short', year:'numeric' }));
+    });
+
+    [...months.entries()].sort((a,b) => b[0].localeCompare(a[0])).forEach(([key, label]) => {
+        strip.innerHTML += `<button onclick="filterByMonth('${key}')" class="btn btn-ghost" style="padding:5px 12px;font-size:11px;border-radius:100px;flex-shrink:0;">${label}</button>`;
+    });
+}
+
+function filterByMonth(key) {
+    document.getElementById('liveSearch').value = '';
+    document.getElementById('categoryFilter').value = '';
+    document.getElementById('typeFilter').value = '';
+    if (key === 'All') return renderTable(globalTransactions);
+    renderTable(globalTransactions.filter(t => t.date && t.date.startsWith(key)));
+}
+
+// ── Table ─────────────────────────────────────────────────────
+function filterTable() {
+    const q   = document.getElementById('liveSearch').value.toLowerCase();
+    const cat = document.getElementById('categoryFilter').value;
+    const typ = document.getElementById('typeFilter').value;
+
+    const filtered = globalTransactions.filter(t => {
+        if (typeof t.amount !== 'number') return false;
+        if (q && !((t.description||'').toLowerCase().includes(q) || (t.category||'').toLowerCase().includes(q) || (t.date||'').includes(q))) return false;
+        if (cat && t.category !== cat) return false;
+        if (typ === 'credit' && t.amount < 0) return false;
+        if (typ === 'debit' && t.amount >= 0) return false;
+        return true;
+    });
+    renderTable(filtered);
+}
+
+function renderTable(txns) {
     const tbody = document.getElementById('tableBody');
-    tbody.innerHTML = "";
-    transactionsToShow.forEach(t => {
+    const empty = document.getElementById('ledgerEmpty');
+    const countLbl = document.getElementById('txCountLabel');
+    tbody.innerHTML = '';
+
+    if (!txns.length) {
+        empty.style.display = 'block';
+        countLbl.textContent = '0 transactions';
+        return;
+    }
+    empty.style.display = 'none';
+    countLbl.textContent = `${txns.length} transaction${txns.length !== 1 ? 's' : ''}`;
+
+    txns.forEach(t => {
         if (typeof t.amount !== 'number' || isNaN(t.amount)) return;
         const isDebit = t.amount < 0;
-        let tagColor = isDebit ? 'bg-violet-100 text-violet-700' : 'bg-emerald-100 text-emerald-700';
-        let amtColor = isDebit ? 'text-slate-800' : 'text-emerald-500';
+        const catIdx  = Object.keys({'Utilities':0,'Salary':1,'Food & Dining':2,'Shopping':3,'Auto & Transport':4,'Entertainment':5,'Transfers & Loans':6,'Groceries':7,'UPI Payment':8,'Other':9})[Object.keys({'Utilities':0,'Salary':1,'Food & Dining':2,'Shopping':3,'Auto & Transport':4,'Entertainment':5,'Transfers & Loans':6,'Groceries':7,'UPI Payment':8,'Other':9}).indexOf(t.category)] ?? 9;
+        const catColors = {'Utilities':0,'Salary':1,'Food & Dining':2,'Shopping':3,'Auto & Transport':4,'Entertainment':5,'Transfers & Loans':6,'Groceries':7,'UPI Payment':8,'Other':9};
+        const ci = catColors[t.category] ?? 9;
         tbody.innerHTML += `
-            <tr class="list-row group border-b border-slate-100/50">
-                <td class="px-6 py-4 text-slate-500 whitespace-nowrap text-xs">${t.date || '---'}</td>
-                <td class="px-6 py-4 text-slate-800 font-bold text-sm group-hover:text-violet-600 transition-colors">${t.description || 'N/A'}</td>
-                <td class="px-6 py-4"><span class="${tagColor} px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-wider whitespace-nowrap">${t.category || 'UNCLASSIFIED'}</span></td>
-                <td class="px-6 py-4 text-right font-black ${amtColor} text-sm whitespace-nowrap">${isDebit ? '-' : '+'}₹${Math.abs(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</td>
+            <tr class="tx-row">
+                <td style="padding:12px 20px;font-size:13px;color:var(--muted);white-space:nowrap;">${formatDate(t.date)}</td>
+                <td style="padding:12px 20px;font-size:13px;font-weight:500;color:var(--ink-3);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(t.description || 'N/A')}</td>
+                <td style="padding:12px 20px;"><span class="badge cat-${ci}" style="font-size:10px;">${t.category || 'Other'}</span></td>
+                <td style="padding:12px 20px;text-align:right;font-size:13px;font-weight:700;color:${isDebit ? 'var(--ink)' : 'var(--green)'};">
+                    ${isDebit ? '−' : '+'}${fmt(Math.abs(t.amount))}
+                </td>
             </tr>`;
     });
 }
 
-function buildCalendarStrip(txData) {
-    const strip = document.getElementById('calendarStrip');
-    strip.innerHTML = `<button onclick="filterByDate('All')" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-slate-800 text-white shadow-lg transition hover:-translate-y-0.5 flex-shrink-0">All Days</button>`;
-    
-    const uniqueMonths = new Set();
-    txData.forEach(t => {
-        if(t.date && t.date.length >= 7) {
-            let parts = String(t.date).split('-');
-            if(parts.length === 3) uniqueMonths.add(`${parts[1]}-${parts[2]}`);
-            else uniqueMonths.add(t.date);
+// ── Export CSV ────────────────────────────────────────────────
+function exportCSV() {
+    const rows = [['Date','Description','Category','Amount (INR)']];
+    globalTransactions.forEach(t => {
+        rows.push([
+            t.date || '',
+            `"${(t.description || '').replace(/"/g, '""')}"`,
+            t.category || '',
+            t.amount || 0
+        ]);
+    });
+    const csv = rows.map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `monix-transactions-${Date.now()}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+    toast('CSV exported', 'success');
+}
+
+// ── Predictions ───────────────────────────────────────────────
+async function fetchPredictions() {
+    if (predictionsCache) return renderPredictions(predictionsCache);
+    const list = document.getElementById('predictionsList');
+    list.innerHTML = `<p style="font-size:13px;color:var(--muted);">Analyzing patterns...</p>`;
+
+    try {
+        const user = auth.currentUser;
+        const idToken = await user.getIdToken();
+        const res = await fetch(`${BACKEND_URL}/predict`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+            body: JSON.stringify({ history: allTimeTransactions }),
+        });
+        const preds = await res.json();
+        if (Array.isArray(preds) && preds.length) {
+            predictionsCache = preds;
+            renderPredictions(preds);
+        } else {
+            list.innerHTML = `<p style="font-size:13px;color:var(--muted);font-style:italic;">Not enough data for predictions yet.</p>`;
         }
-    });
-
-    [...uniqueMonths].forEach(month => {
-        strip.innerHTML += `<button onclick="filterByDate('${month}')" class="px-5 py-2.5 rounded-xl text-xs font-bold bg-white/80 text-slate-600 border border-slate-200 shadow-sm transition hover:bg-white hover:-translate-y-0.5 flex-shrink-0">${month}</button>`;
-    });
+    } catch {
+        list.innerHTML = `<p style="font-size:13px;color:var(--muted);font-style:italic;">Predictions unavailable.</p>`;
+    }
 }
 
-function filterByDate(searchTerm) {
-    document.getElementById('liveSearch').value = ''; 
-    if(searchTerm === 'All') renderTable(globalTransactions);
-    else renderTable(globalTransactions.filter(t => String(t.date).includes(searchTerm)));
+function renderPredictions(preds) {
+    const list = document.getElementById('predictionsList');
+    list.innerHTML = preds.map(p => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);">
+            <span style="font-size:13px;font-weight:500;color:var(--ink-3);">${escapeHtml(p.name)}</span>
+            <span class="badge badge-red">−${fmt(p.amount)}</span>
+        </div>`).join('');
 }
 
-function filterTable() {
-    const query = document.getElementById('liveSearch').value.toLowerCase();
-    const filtered = globalTransactions.filter(t => 
-        (t.description && t.description.toLowerCase().includes(query)) ||
-        (t.category && t.category.toLowerCase().includes(query)) ||
-        (t.date && t.date.toLowerCase().includes(query))
-    );
-    renderTable(filtered);
+// ── Goal Calculator ───────────────────────────────────────────
+function calculateGoal() {
+    const amount = parseFloat(document.getElementById('goalAmount').value);
+    const months = parseFloat(document.getElementById('goalMonths').value);
+
+    if (!amount || amount <= 0) return toast('Enter a valid goal amount', 'error');
+    if (!months || months <= 0 || months > 120) return toast('Enter a valid number of months (1–120)', 'error');
+
+    const monthlyTarget = amount / months;
+    document.getElementById('goalMonthlyAmount').textContent = fmt(monthlyTarget);
+
+    const leftover = currentIncome - currentSpend;
+    let advice = '';
+    if (currentIncome === 0) {
+        advice = `<span style="color:var(--muted);">Upload a bank statement to see if this goal fits your budget.</span>`;
+    } else if (leftover >= monthlyTarget) {
+        const surplus = leftover - monthlyTarget;
+        advice = `<span style="color:var(--green);font-weight:600;">✓ Achievable!</span> You currently have <strong>${fmt(leftover)}</strong> left after expenses — that leaves <strong>${fmt(surplus)}</strong> extra each month.`;
+    } else if (leftover > 0) {
+        const gap = monthlyTarget - leftover;
+        advice = `<span style="color:var(--amber);font-weight:600;">Tight budget.</span> You save about <strong>${fmt(leftover)}</strong>/month now. You need <strong>${fmt(gap)}</strong> more — try cutting discretionary spend.`;
+    } else {
+        advice = `<span style="color:var(--red);font-weight:600;">Currently over budget.</span> You're spending more than you earn. Focus on reducing expenses before adding new goals.`;
+    }
+
+    document.getElementById('goalAdvice').innerHTML = advice;
+    document.getElementById('goalResult').style.display = 'block';
 }
 
-function initChart(cats, chartHex) {
-    if(chartObj) chartObj.destroy();
-    const ctx = document.getElementById('myChart').getContext('2d');
-    chartObj = new Chart(ctx, {
-        type: 'doughnut',
-        data: { labels: Object.keys(cats), datasets: [{ data: Object.values(cats), backgroundColor: chartHex, borderWidth: 0, hoverOffset: 12 }] },
-        options: { 
-            plugins: { 
-                legend: { display: false },
-                tooltip: {
-                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                    titleColor: '#0f172a',
-                    bodyColor: '#64748b',
-                    borderColor: 'rgba(226, 232, 240, 1)',
-                    borderWidth: 1,
-                    padding: 12,
-                    boxPadding: 6,
-                    usePointStyle: true,
-                    cornerRadius: 12,
-                    displayColors: true,
-                    bodyFont: { family: "'Plus Jakarta Sans', sans-serif", size: 13, weight: 'bold' }
-                }
-            }, 
-            cutout: '75%', 
-            animation: { animateScale: true, animateRotate: true, duration: 1500, easing: 'easeOutQuart' } 
-        }
-    });
+// ── AI Chat ───────────────────────────────────────────────────
+function toggleRoastMode() {
+    isRoastMode = !isRoastMode;
+    const track = document.getElementById('roastTrack');
+    const avatar = document.getElementById('aiAvatar');
+    const mode = document.getElementById('advisorMode');
+    const welcome = document.getElementById('welcomeMsg');
+    const card = document.getElementById('chatCard');
+
+    track.classList.toggle('on', isRoastMode);
+    if (isRoastMode) {
+        avatar.style.background = 'var(--red)';
+        mode.textContent = '🔥 Roast mode on';
+        mode.style.color = 'var(--red)';
+        card.style.borderColor = '#fca5a5';
+        welcome.textContent = "Oh look who's back. Ready for some home truths about your spending? Let's do this.";
+    } else {
+        avatar.style.background = 'var(--ink)';
+        mode.textContent = '● Online';
+        mode.style.color = 'var(--green)';
+        card.style.borderColor = '';
+        welcome.textContent = 'Hi! I\'ve reviewed your financial data. Ask me anything — spending patterns, savings tips, or budget advice.';
+    }
+}
+
+async function askAI() {
+    const input = document.getElementById('chatInput');
+    const question = input.value.trim();
+    if (!question) return;
+
+    const history = document.getElementById('chatHistory');
+    const btn = document.getElementById('askBtn');
+    btn.disabled = true;
+    input.value = '';
+
+    // User bubble
+    appendMsg(history, 'user', escapeHtml(question));
+
+    // Typing indicator
+    const typingId = 'typing-' + Date.now();
+    history.innerHTML += `
+        <div id="${typingId}" style="display:flex;gap:8px;align-items:flex-start;">
+            <div style="width:28px;height:28px;border-radius:8px;background:${isRoastMode?'var(--red)':'var(--ink)'};flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-brain" style="color:#fff;font-size:11px;"></i>
+            </div>
+            <div class="msg-ai" style="padding:10px 14px;font-size:13px;display:flex;gap:4px;align-items:center;">
+                <span style="animation:pulse 0.8s infinite 0s">·</span>
+                <span style="animation:pulse 0.8s infinite 0.15s">·</span>
+                <span style="animation:pulse 0.8s infinite 0.3s">·</span>
+            </div>
+        </div>`;
+    history.scrollTop = history.scrollHeight;
+
+    try {
+        const user = auth.currentUser;
+        const idToken = await user.getIdToken();
+        const res = await fetch(`${BACKEND_URL}/chat`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${idToken}` },
+            body: JSON.stringify({ question, history: allTimeTransactions, roastMode: isRoastMode }),
+        });
+        const data = await res.json();
+        document.getElementById(typingId)?.remove();
+        appendMsg(history, 'ai', escapeHtml(data.answer || 'Sorry, I couldn\'t answer that.'));
+    } catch {
+        document.getElementById(typingId)?.remove();
+        appendMsg(history, 'error', 'Connection error. Please check your network and try again.');
+    }
+
+    btn.disabled = false;
+    history.scrollTop = history.scrollHeight;
+}
+
+function appendMsg(container, type, text) {
+    const isUser = type === 'user';
+    const isError = type === 'error';
+    container.innerHTML += `
+        <div style="display:flex;gap:8px;align-items:flex-start;${isUser?'flex-direction:row-reverse;':''}" >
+            ${!isUser ? `<div style="width:28px;height:28px;border-radius:8px;background:${isRoastMode?'var(--red)':'var(--ink)'};flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-${isError?'exclamation-triangle':'brain'}" style="color:#fff;font-size:11px;"></i></div>` : ''}
+            <div class="${isUser?'msg-user':isError?'msg-error':'msg-ai'}" style="padding:10px 14px;font-size:13px;line-height:1.5;max-width:82%;">${text}</div>
+        </div>`;
+}
+
+// ── Utilities ─────────────────────────────────────────────────
+function fmt(n) {
+    return '₹' + (Math.abs(n) || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function formatDate(d) {
+    if (!d) return '—';
+    const dt = new Date(d);
+    if (isNaN(dt)) return d;
+    return dt.toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+}
+function escapeHtml(str) {
+    return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function show(id, display = 'block') {
+    const el = document.getElementById(id);
+    if (el) el.style.display = display;
+}
+function hide(id) {
+    const el = document.getElementById(id);
+    if (el) el.style.display = 'none';
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+let toastTimer;
+function toast(msg, type = 'info') {
+    const el = document.getElementById('toast');
+    const msgEl = document.getElementById('toastMsg');
+    const icon  = document.getElementById('toastIcon');
+    const icons = { success: 'fa-circle-check', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+    el.className = `show ${type}`;
+    icon.className = `fas ${icons[type] || icons.info}`;
+    msgEl.textContent = msg;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => el.classList.remove('show'), 4000);
+}
+
+// ── Loading overlay ───────────────────────────────────────────
+function showLoading(text = 'Processing...') {
+    document.getElementById('loadingText').textContent = text;
+    document.getElementById('loadingOverlay').classList.add('show');
+}
+function hideLoading() {
+    document.getElementById('loadingOverlay').classList.remove('show');
 }
 </script>
 </body>
