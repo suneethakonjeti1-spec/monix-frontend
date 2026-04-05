@@ -490,6 +490,23 @@ body {
   0%{transform:translateY(-20px) rotate(0deg);opacity:1}
   100%{transform:translateY(60px) rotate(180deg);opacity:0}
 }
+
+/* ── Privacy Blur ── */
+.blur-data {
+  filter: blur(7px);
+  user-select: none;
+  transition: filter .25s ease;
+}
+.privacy-eye {
+  display:inline-flex;align-items:center;justify-content:center;
+  width:32px;height:32px;border-radius:50%;
+  background:var(--surface-3);border:1px solid var(--border-s);
+  color:var(--muted);font-size:14px;cursor:pointer;
+  transition:all .15s;flex-shrink:0;
+  -webkit-tap-highlight-color:transparent;
+}
+.privacy-eye:hover { background:var(--surface);color:var(--ink);box-shadow:var(--sh); }
+.privacy-eye.hidden-mode { background:var(--accent-l);border-color:var(--accent);color:var(--accent); }
 </style>
 </head>
 <body>
@@ -650,9 +667,14 @@ body {
 
   <!-- ──── DASH ──── -->
   <div id="view-dash" class="view">
-    <div style="display:flex;align-items:flex-end;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:20px;">
       <div><p class="page-label">Overview</p><h1 class="page-title">Your Finances</h1></div>
-      <span id="lastUpdatedBadge" class="badge b-gray" style="font-size:10px;"></span>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span id="lastUpdatedBadge" class="badge b-gray" style="font-size:10px;"></span>
+        <button class="privacy-eye" id="privacyBtn" onclick="togglePrivacy()" title="Hide numbers">
+          <i class="fas fa-eye" id="privacyIcon"></i>
+        </button>
+      </div>
     </div>
 
     <!-- Stat cards — 2×2 on mobile, 4 across on desktop -->
@@ -676,22 +698,22 @@ body {
       <div class="card" style="padding:20px;">
         <div class="stat-line" style="background:var(--green);"></div>
         <p style="font-size:10px;font-weight:600;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Income</p>
-        <p id="totalInc" style="font-family:'Syne',sans-serif;font-size:clamp(20px,4vw,26px);font-weight:700;color:var(--green);">₹0</p>
-        <p id="incTxCount" style="font-size:11px;color:var(--muted);margin-top:4px;">0 credits</p>
+        <p id="totalInc" class="sensitive" style="font-family:'Syne',sans-serif;font-size:clamp(20px,4vw,26px);font-weight:700;color:var(--green);">₹0</p>
+        <p id="incTxCount" class="sensitive" style="font-size:11px;color:var(--muted);margin-top:4px;">0 credits</p>
       </div>
       <!-- Spending -->
       <div class="card" style="padding:20px;">
         <div class="stat-line" style="background:var(--red);"></div>
         <p style="font-size:10px;font-weight:600;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Spending</p>
-        <p id="totalExp" style="font-family:'Syne',sans-serif;font-size:clamp(20px,4vw,26px);font-weight:700;color:var(--ink);">₹0</p>
-        <p id="expTxCount" style="font-size:11px;color:var(--muted);margin-top:4px;">0 debits</p>
+        <p id="totalExp" class="sensitive" style="font-family:'Syne',sans-serif;font-size:clamp(20px,4vw,26px);font-weight:700;color:var(--ink);">₹0</p>
+        <p id="expTxCount" class="sensitive" style="font-size:11px;color:var(--muted);margin-top:4px;">0 debits</p>
       </div>
       <!-- Savings -->
       <div class="card" style="padding:20px;">
         <div class="stat-line" id="savingsLine" style="background:var(--accent);"></div>
         <p style="font-size:10px;font-weight:600;letter-spacing:.07em;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">Saved</p>
-        <p id="totalSavings" style="font-family:'Syne',sans-serif;font-size:clamp(20px,4vw,26px);font-weight:700;color:var(--accent);">₹0</p>
-        <p id="savingsRate" style="font-size:11px;color:var(--muted);margin-top:4px;">0% rate</p>
+        <p id="totalSavings" class="sensitive" style="font-family:'Syne',sans-serif;font-size:clamp(20px,4vw,26px);font-weight:700;color:var(--accent);">₹0</p>
+        <p id="savingsRate" class="sensitive" style="font-size:11px;color:var(--muted);margin-top:4px;">0% rate</p>
       </div>
     </div>
 
@@ -1414,6 +1436,21 @@ if (document.readyState === 'loading') {
   _obInit();
 }
 
+
+// ── Privacy Blur ──────────────────────────────────────────
+let _privacyOn = false;
+function togglePrivacy() {
+  _privacyOn = !_privacyOn;
+  const btn  = document.getElementById('privacyBtn');
+  const icon = document.getElementById('privacyIcon');
+  document.querySelectorAll('.sensitive').forEach(el => {
+    el.classList.toggle('blur-data', _privacyOn);
+  });
+  const h = document.getElementById('healthScoreText');
+  if (h) h.classList.toggle('blur-data', _privacyOn);
+  btn.classList.toggle('hidden-mode', _privacyOn);
+  icon.className = _privacyOn ? 'fas fa-eye-slash' : 'fas fa-eye';
+}
 function hideLoad(){$('loadingOverlay').classList.remove('show');}
 </script>
 </body>
