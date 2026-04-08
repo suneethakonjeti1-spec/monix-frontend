@@ -507,6 +507,84 @@ body {
 }
 .privacy-eye:hover { background:var(--surface);color:var(--ink);box-shadow:var(--sh); }
 .privacy-eye.hidden-mode { background:var(--accent-l);border-color:var(--accent);color:var(--accent); }
+
+/* ── Dark Mode ── */
+[data-theme="dark"] {
+  --ink:        #f0f0f5;
+  --ink-2:      #d8d8e8;
+  --ink-3:      #b8b8cc;
+  --muted:      #8888a0;
+  --muted-2:    #66667a;
+  --surface:    #16161f;
+  --surface-2:  #1e1e2a;
+  --surface-3:  #26263a;
+  --border:     rgba(255,255,255,0.07);
+  --border-s:   rgba(255,255,255,0.12);
+  --accent-l:   rgba(79,70,229,0.2);
+  --green-l:    rgba(5,150,105,0.2);
+  --red-l:      rgba(220,38,38,0.2);
+  --amber-l:    rgba(217,119,6,0.2);
+  --sh:         0 4px 16px rgba(0,0,0,0.3),0 1px 4px rgba(0,0,0,0.2);
+  --sh-lg:      0 20px 40px rgba(0,0,0,0.4),0 4px 12px rgba(0,0,0,0.3);
+}
+[data-theme="dark"] body { background:var(--surface-2); }
+[data-theme="dark"] #navDock { background:rgba(22,22,31,0.96);border-color:rgba(255,255,255,0.08); }
+[data-theme="dark"] .nav-btn { color:rgba(255,255,255,0.4); }
+[data-theme="dark"] .nav-btn:hover { color:var(--accent); }
+[data-theme="dark"] .nav-btn.active { color:var(--accent);background:rgba(79,70,229,0.18); }
+[data-theme="dark"] .nav-upload { background:#4f46e5;box-shadow:0 4px 14px rgba(79,70,229,0.4); }
+[data-theme="dark"] .btn-primary { background:#4f46e5;color:#fff; }
+[data-theme="dark"] .btn-primary:hover { background:#4338ca; }
+[data-theme="dark"] .btn-ghost { background:var(--surface-3);color:var(--ink-3);border-color:var(--border-s); }
+[data-theme="dark"] .btn-ghost:hover { background:#2e2e3d; }
+[data-theme="dark"] .btn-danger { background:rgba(220,38,38,0.15);color:#f87171; }
+[data-theme="dark"] .btn-danger:hover { background:var(--red);color:#fff; }
+[data-theme="dark"] .card { background:var(--surface);border-color:var(--border); }
+[data-theme="dark"] .field { background:var(--surface-3);color:var(--ink);border-color:var(--border-s); }
+[data-theme="dark"] select.field option { background:#1e1e2a; }
+[data-theme="dark"] .msg-ai { background:var(--surface-3);border-color:var(--border-s);color:var(--ink); }
+[data-theme="dark"] .msg-user { background:#4f46e5; }
+[data-theme="dark"] .b-gray  { background:var(--surface-3);color:var(--muted); }
+[data-theme="dark"] .b-green { background:rgba(5,150,105,0.15);color:#34d399; }
+[data-theme="dark"] .b-accent{ background:rgba(79,70,229,0.2);color:#a5b4fc; }
+[data-theme="dark"] .b-red   { background:rgba(220,38,38,0.15);color:#f87171; }
+[data-theme="dark"] .b-amber { background:rgba(217,119,6,0.15);color:#fbbf24; }
+[data-theme="dark"] .cat-0{background:rgba(91,33,182,.2);color:#c4b5fd}
+[data-theme="dark"] .cat-1{background:rgba(30,64,175,.2);color:#93c5fd}
+[data-theme="dark"] .cat-2{background:rgba(6,95,70,.2);color:#6ee7b7}
+[data-theme="dark"] .cat-3{background:rgba(146,64,14,.2);color:#fcd34d}
+[data-theme="dark"] .cat-4{background:rgba(153,27,27,.2);color:#fca5a5}
+[data-theme="dark"] .cat-5{background:rgba(22,101,52,.2);color:#86efac}
+[data-theme="dark"] .cat-6{background:rgba(7,89,133,.2);color:#7dd3fc}
+[data-theme="dark"] .cat-7{background:rgba(134,25,143,.2);color:#e879f9}
+[data-theme="dark"] .cat-8{background:rgba(154,52,18,.2);color:#fb923c}
+[data-theme="dark"] .cat-9{background:rgba(71,85,105,.2);color:#94a3b8}
+[data-theme="dark"] .privacy-eye { background:var(--surface-3);border-color:var(--border-s);color:var(--muted); }
+[data-theme="dark"] .privacy-eye.hidden-mode { background:rgba(79,70,229,0.2);border-color:rgba(79,70,229,0.4);color:#a5b4fc; }
+[data-theme="dark"] #toast { background:#26263a;border:1px solid var(--border-s); }
+[data-theme="dark"] #toast.success { background:#065f46; }
+[data-theme="dark"] #toast.error   { background:#7f1d1d; }
+[data-theme="dark"] #toast.info    { background:#3730a3; }
+[data-theme="dark"] #loadingOverlay { background:rgba(22,22,31,0.92); }
+[data-theme="dark"] .loading-text { color:var(--ink-2); }
+[data-theme="dark"] .tog-track { background:var(--surface-3);border-color:rgba(255,255,255,0.15); }
+[data-theme="dark"] .tx-row:hover { background:var(--surface-3); }
+[data-theme="dark"] .tx-row { border-color:var(--border); }
+[data-theme="dark"] .prog-track { background:var(--surface-3); }
+[data-theme="dark"] #onboarding { background:#0a0a0f; }
+
+/* ── Dark mode toggle ── */
+.dm-toggle-row {
+  display:flex;align-items:center;justify-content:space-between;padding:14px 0;
+}
+.dm-toggle-row:not(:last-child) { border-bottom:1px solid var(--border); }
+
+/* ── Skeleton Loader ── */
+#skeletonDash { display:none;animation:skPulse 1.5s ease-in-out infinite; }
+#skeletonDash.show { display:block; }
+@keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:.45} }
+.sk-box { background:var(--surface-3);border-radius:var(--r); }
+.sk-line { background:var(--surface-3);border-radius:6px; }
 </style>
 </head>
 <body>
@@ -664,6 +742,39 @@ body {
 
 <!-- ════════════════ MAIN APP ════════════════ -->
 <div id="mainApp" style="display:none;">
+
+
+<!-- ── Skeleton (shown while Firebase loads) ── -->
+<div id="skeletonDash">
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:14px;">
+    <div class="sk-box" style="height:130px;"></div>
+    <div class="sk-box" style="height:130px;"></div>
+    <div class="sk-box" style="height:130px;"></div>
+    <div class="sk-box" style="height:130px;"></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+    <div class="sk-box" style="height:190px;"></div>
+    <div class="sk-box" style="height:190px;padding:20px;display:flex;flex-direction:column;gap:12px;">
+      <div class="sk-line" style="height:12px;width:40%;"></div>
+      <div class="sk-line" style="height:16px;width:90%;"></div>
+      <div class="sk-line" style="height:16px;width:75%;"></div>
+      <div class="sk-line" style="height:16px;width:85%;"></div>
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+    <div class="sk-box" style="height:160px;padding:20px;display:flex;flex-direction:column;gap:14px;">
+      <div class="sk-line" style="height:10px;width:50%;"></div>
+      <div class="sk-line" style="height:8px;"></div>
+      <div class="sk-line" style="height:8px;width:80%;"></div>
+    </div>
+    <div class="sk-box" style="height:160px;padding:20px;display:flex;flex-direction:column;gap:14px;">
+      <div class="sk-line" style="height:10px;width:50%;"></div>
+      <div class="sk-line" style="height:8px;"></div>
+      <div class="sk-line" style="height:8px;width:70%;"></div>
+    </div>
+  </div>
+</div>
+<!-- /Skeleton -->
 
   <!-- ──── DASH ──── -->
   <div id="view-dash" class="view">
@@ -923,6 +1034,24 @@ body {
       </div>
 
       <div class="card" style="padding:20px;">
+        <p style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;margin-bottom:14px;">Appearance</p>
+        <div class="dm-toggle-row">
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:9px;background:var(--surface-3);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+              <i id="dmIcon" class="fas fa-moon" style="font-size:14px;color:var(--muted);"></i>
+            </div>
+            <div>
+              <p style="font-size:14px;font-weight:600;color:var(--ink);">Dark Mode</p>
+              <p style="font-size:11px;color:var(--muted);">Easy on the eyes at night</p>
+            </div>
+          </div>
+          <div class="tog-track" id="dmTrack" onclick="toggleDarkMode()" style="cursor:pointer;">
+            <div class="tog-thumb"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:20px;">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;">
           <div>
             <p style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">Session</p>
@@ -951,7 +1080,7 @@ body {
 // CONFIG  ← set this to your Render backend URL
 // ══════════════════════════════════════════════════════════
 const BACKEND = "https://monix-backend.onrender.com";
-const API     = BACKEND + "/api";
+const API     = BACKEND;
 
 if (BACKEND.includes('YOUR-RENDER')) {
   console.warn('[Monix] BACKEND URL not set — API calls will fail.');
@@ -1075,16 +1204,25 @@ async function processPDF(file) {
     allTx = combined; predCache = null;
     renderData(allTx); switchView('dash'); hideLoad();
     toast(`${newTx.length} transactions imported 🎉`,'success');
-  } catch(e) { hideLoad(); toast(e.message||'Upload failed','error'); }
+  } catch(e) { 
+  hideLoad(); 
+  if (e.message.includes('503')) {
+     toast('AI servers are currently busy. Please try again in a few minutes.', 'amber');
+  } else {
+     toast(e.message || 'Upload failed', 'error'); 
+  }
+}
   finally { isUploading=false; document.querySelector('.nav-upload').disabled=false; $('pdfFile').value=''; }
 }
 
 // ── Fetch cloud data ──────────────────────────────────────
 async function fetchHistory() {
   try {
-    showLoad('Loading your data…');
+    $('skeletonDash').classList.add('show');
+    show('mainApp');
+    hide('emptyState');
     const doc = await db.collection('users').doc(auth.currentUser.uid).get();
-    hideLoad();
+    $('skeletonDash').classList.remove('show');
     if (doc.exists && doc.data().transactions?.length) {
       allTx = doc.data().transactions;
       const lu = doc.data().lastUpdated?.toDate();
@@ -1451,6 +1589,28 @@ function togglePrivacy() {
   btn.classList.toggle('hidden-mode', _privacyOn);
   icon.className = _privacyOn ? 'fas fa-eye-slash' : 'fas fa-eye';
 }
+
+// ── Dark Mode ─────────────────────────────────────────
+const DM_KEY = 'monix_dark_mode';
+function applyTheme(dark) {
+  document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+  const track = document.getElementById('dmTrack');
+  const icon  = document.getElementById('dmIcon');
+  if (track) track.classList.toggle('on', dark);
+  if (icon)  { icon.className = dark ? 'fas fa-sun' : 'fas fa-moon'; icon.style.color = dark ? '#fbbf24' : 'var(--muted)'; }
+}
+function toggleDarkMode() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  localStorage.setItem(DM_KEY, !isDark ? '1' : '0');
+  applyTheme(!isDark);
+}
+// Apply on load — respect OS preference if no saved preference
+(function(){
+  const saved = localStorage.getItem(DM_KEY);
+  const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  applyTheme(saved !== null ? saved === '1' : prefersDark);
+})();
+
 function hideLoad(){$('loadingOverlay').classList.remove('show');}
 </script>
 </body>
