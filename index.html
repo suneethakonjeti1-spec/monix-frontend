@@ -572,6 +572,7 @@ body {
 [data-theme="dark"] .tx-row { border-color:var(--border); }
 [data-theme="dark"] .prog-track { background:var(--surface-3); }
 [data-theme="dark"] #onboarding { background:#0a0a0f; }
+[data-theme="dark"] #demoBanner { box-shadow:0 4px 14px rgba(79,70,229,.5); }
 
 /* ── Dark mode toggle ── */
 .dm-toggle-row {
@@ -585,6 +586,42 @@ body {
 @keyframes skPulse { 0%,100%{opacity:1} 50%{opacity:.45} }
 .sk-box { background:var(--surface-3);border-radius:var(--r); }
 .sk-line { background:var(--surface-3);border-radius:6px; }
+
+/* ── Demo Banner ── */
+#demoBanner {
+  display:none;
+  align-items:center;justify-content:space-between;gap:10px;
+  background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);
+  color:#fff;
+  border-radius:var(--r);
+  padding:13px 16px;
+  margin-bottom:16px;
+  box-shadow:0 4px 14px rgba(79,70,229,.3);
+  animation:viewIn .3s cubic-bezier(.16,1,.3,1);
+}
+#demoBanner.show { display:flex; }
+.demo-banner-left { display:flex;align-items:center;gap:10px;min-width:0; }
+.demo-badge {
+  background:rgba(255,255,255,.18);
+  font-size:10px;font-weight:700;letter-spacing:.06em;
+  padding:3px 9px;border-radius:100px;white-space:nowrap;flex-shrink:0;
+}
+.demo-text { font-size:13px;font-weight:500;opacity:.92;line-height:1.4; }
+.demo-text strong { font-weight:700;opacity:1; }
+.demo-upload-btn {
+  background:#fff;color:#4f46e5;
+  font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;
+  border:none;border-radius:8px;padding:7px 13px;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;
+  transition:all .15s;
+}
+.demo-upload-btn:hover { background:#ede9fe; }
+.demo-dismiss {
+  background:none;border:none;color:rgba(255,255,255,.6);
+  cursor:pointer;padding:2px 4px;font-size:16px;flex-shrink:0;line-height:1;
+  transition:color .15s;
+}
+.demo-dismiss:hover { color:#fff; }
 </style>
 </head>
 <body>
@@ -786,6 +823,16 @@ body {
           <i class="fas fa-eye" id="privacyIcon"></i>
         </button>
       </div>
+    </div>
+
+    <!-- Demo Mode Banner -->
+    <div id="demoBanner">
+      <div class="demo-banner-left">
+        <span class="demo-badge">✦ DEMO</span>
+        <span class="demo-text"><strong>Sample data</strong> — see what Monix looks like with real insights. Upload your statement to get started.</span>
+      </div>
+      <button class="demo-upload-btn" onclick="document.getElementById('pdfFile').click()"><i class="fas fa-plus"></i> Upload</button>
+      <button class="demo-dismiss" onclick="dismissDemoBanner()" title="Dismiss">×</button>
     </div>
 
     <!-- Stat cards — 2×2 on mobile, 4 across on desktop -->
@@ -1103,10 +1150,56 @@ const db   = firebase.firestore();
 let allTx = [], globalTx = [];
 let income = 0, spend = 0;
 let chartObj = null;
-let isRoast = false, isLogin = true, isUploading = false;
+let isRoast = false, isLogin = true, isUploading = false, isDemoMode = false;
 let predCache = null;
 const CAT_COLORS = ['#4f46e5','#0ea5e9','#10b981','#f59e0b','#ef4444','#06b6d4','#8b5cf6','#ec4899','#f97316','#64748b'];
 const CAT_MAP = {'Utilities':0,'Salary':1,'Food & Dining':2,'Shopping':3,'Auto & Transport':4,'Entertainment':5,'Transfers & Loans':6,'Groceries':7,'UPI Payment':8,'Other':9};
+
+// ── Demo Transactions (shown to new users) ────────────────
+const DEMO_TX = [
+  // March 2025
+  {date:'2025-03-01',description:'SALARY CREDIT - INFOSYS LTD',amount:85000,category:'Salary'},
+  {date:'2025-03-02',description:'RENT TRANSFER - LANDLORD',amount:-18000,category:'Transfers & Loans'},
+  {date:'2025-03-03',description:'SWIGGY ORDER #4821',amount:-320,category:'Food & Dining'},
+  {date:'2025-03-05',description:'BESCOM ELECTRICITY BILL',amount:-1240,category:'Utilities'},
+  {date:'2025-03-07',description:'ZOMATO FOOD DELIVERY',amount:-485,category:'Food & Dining'},
+  {date:'2025-03-08',description:'AMAZON PRIME MEMBERSHIP',amount:-299,category:'Entertainment'},
+  {date:'2025-03-09',description:'DMART GROCERIES',amount:-2800,category:'Groceries'},
+  {date:'2025-03-10',description:'NETFLIX SUBSCRIPTION',amount:-649,category:'Entertainment'},
+  {date:'2025-03-11',description:'UBER RIDE - KORAMANGALA',amount:-180,category:'Auto & Transport'},
+  {date:'2025-03-12',description:'SPOTIFY PREMIUM',amount:-119,category:'Entertainment'},
+  {date:'2025-03-14',description:'MYNTRA SHOPPING',amount:-1890,category:'Shopping'},
+  {date:'2025-03-15',description:'HOME LOAN EMI - HDFC',amount:-22000,category:'Transfers & Loans'},
+  {date:'2025-03-17',description:'BLINKIT GROCERY DELIVERY',amount:-650,category:'Groceries'},
+  {date:'2025-03-18',description:'RAPIDO AUTO RIDE',amount:-95,category:'Auto & Transport'},
+  {date:'2025-03-19',description:'BBMP PROPERTY TAX',amount:-3200,category:'Utilities'},
+  {date:'2025-03-20',description:'SWIGGY INSTAMART',amount:-410,category:'Groceries'},
+  {date:'2025-03-21',description:'FREELANCE PAYMENT - RAZORPAY',amount:12000,category:'Salary'},
+  {date:'2025-03-22',description:'AMAZON SHOPPING',amount:-2340,category:'Shopping'},
+  {date:'2025-03-23',description:'PVR CINEMAS BOOKING',amount:-680,category:'Entertainment'},
+  {date:'2025-03-24',description:'AIRTEL MOBILE RECHARGE',amount:-349,category:'Utilities'},
+  {date:'2025-03-25',description:'NAMMA METRO CARD RELOAD',amount:-500,category:'Auto & Transport'},
+  {date:'2025-03-26',description:'ZEPTO GROCERY ORDER',amount:-720,category:'Groceries'},
+  {date:'2025-03-27',description:'FLIPKART PURCHASE',amount:-1560,category:'Shopping'},
+  {date:'2025-03-28',description:'STARBUCKS COFFEE',amount:-420,category:'Food & Dining'},
+  {date:'2025-03-29',description:'YOUTUBE PREMIUM',amount:-189,category:'Entertainment'},
+  {date:'2025-03-30',description:'FOOD COURT - FORUM MALL',amount:-560,category:'Food & Dining'},
+  // February 2025
+  {date:'2025-02-01',description:'SALARY CREDIT - INFOSYS LTD',amount:85000,category:'Salary'},
+  {date:'2025-02-02',description:'RENT TRANSFER - LANDLORD',amount:-18000,category:'Transfers & Loans'},
+  {date:'2025-02-05',description:'BESCOM ELECTRICITY BILL',amount:-1180,category:'Utilities'},
+  {date:'2025-02-07',description:'SWIGGY ORDER #3942',amount:-390,category:'Food & Dining'},
+  {date:'2025-02-10',description:'DMART GROCERIES',amount:-3100,category:'Groceries'},
+  {date:'2025-02-12',description:'HOME LOAN EMI - HDFC',amount:-22000,category:'Transfers & Loans'},
+  {date:'2025-02-14',description:'FERNS N PETALS - FLOWERS',amount:-850,category:'Shopping'},
+  {date:'2025-02-16',description:'AMAZON PRIME MEMBERSHIP',amount:-299,category:'Entertainment'},
+  {date:'2025-02-18',description:'NETFLIX SUBSCRIPTION',amount:-649,category:'Entertainment'},
+  {date:'2025-02-20',description:'UBER RIDE - AIRPORT',amount:-480,category:'Auto & Transport'},
+  {date:'2025-02-22',description:'MYNTRA SALE PURCHASE',amount:-3200,category:'Shopping'},
+  {date:'2025-02-24',description:'AIRTEL POSTPAID BILL',amount:-349,category:'Utilities'},
+  {date:'2025-02-25',description:'FREELANCE PAYMENT - RAZORPAY',amount:8500,category:'Salary'},
+  {date:'2025-02-27',description:'ZOMATO FOOD DELIVERY',amount:-340,category:'Food & Dining'},
+];
 
 // ── Auth state ────────────────────────────────────────────
 auth.onAuthStateChanged(user => {
@@ -1193,14 +1286,17 @@ async function processPDF(file) {
     const data = await res.json();
     if (!Array.isArray(data)||!data.length) throw new Error("No transactions found — check it's a text-based PDF.");
 
-    const keys = new Set(allTx.map(t=>`${t.date}|${t.description}|${t.amount}`));
+    const realTx = isDemoMode ? [] : allTx;
+    const keys = new Set(realTx.map(t=>`${t.date}|${t.description}|${t.amount}`));
     const newTx = data.filter(t=>!keys.has(`${t.date}|${t.description}|${t.amount}`));
     if (!newTx.length) { hideLoad(); toast('Already uploaded — no new transactions','info'); return; }
 
-    const combined = [...allTx, ...newTx];
+    const combined = [...(isDemoMode ? [] : allTx), ...newTx];
     await db.collection('users').doc(auth.currentUser.uid).set({
       transactions: combined, lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
     });
+    isDemoMode = false;
+    $('demoBanner').classList.remove('show');
     allTx = combined; predCache = null;
     renderData(allTx); switchView('dash'); hideLoad();
     toast(`${newTx.length} transactions imported 🎉`,'success');
@@ -1222,34 +1318,51 @@ async function fetchHistory() {
     show('mainApp');
     hide('emptyState');
     const doc = await db.collection('users').doc(auth.currentUser.uid).get();
-    $('skeletonDash').classList.remove('show');
+    
     if (doc.exists && doc.data().transactions?.length) {
+      isDemoMode = false;
       allTx = doc.data().transactions;
       const lu = doc.data().lastUpdated?.toDate();
       if (lu) $('lastUpdatedBadge').textContent = 'Updated ' + lu.toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'});
-      renderData(allTx); switchView('dash');
-    } else { allTx=[]; hide('mainApp'); show('emptyState'); }
-  } catch { hideLoad(); toast('Could not load data — check connection','error'); }
-}
-
-async function clearHistory() {
-  if (!confirm('Delete ALL your financial data? This cannot be undone.')) return;
-  try {
-    await db.collection('users').doc(auth.currentUser.uid).delete();
-    allTx=[]; globalTx=[]; predCache=null; hide('mainApp'); show('emptyState');
-    toast('All data deleted','info');
-  } catch { toast('Delete failed','error'); }
+      renderData(allTx); 
+    } else { 
+      // New user — load demo data so the interface feels alive
+      isDemoMode = true;
+      allTx = DEMO_TX;
+      $('lastUpdatedBadge').textContent = 'Demo Data';
+      renderData(DEMO_TX);
+    }
+    
+    // Handle both new and returning users centrally
+    switchView('dash'); 
+  } catch { 
+    $('skeletonDash').classList.remove('show');
+    hideLoad(); 
+    toast('Could not load data — check connection','error'); 
+  }
 }
 
 // ── View switching ────────────────────────────────────────
 function switchView(name) {
-  if (!allTx.length && name!=='profile') { hide('mainApp'); show('emptyState'); return; }
-  hide('emptyState'); show('mainApp');
+  // Remove skeleton — data (real or demo) is always ready by now
+  $('skeletonDash').classList.remove('show');
+  hide('emptyState');
+
+  show('mainApp');
   ['dash','ledger','goals','profile'].forEach(v=>hide('view-'+v));
   show('view-'+name);
+
+  // Show demo banner only on dash view when in demo mode
+  const banner = $('demoBanner');
+  if (banner) banner.classList.toggle('show', isDemoMode && name === 'dash');
+
   document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
   const b=$('nav-'+name); if(b) b.classList.add('active');
   window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function dismissDemoBanner() {
+  $('demoBanner').classList.remove('show');
 }
 
 // ── Render data ───────────────────────────────────────────
