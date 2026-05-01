@@ -10,6 +10,10 @@
 <meta property="og:title" content="Monix — Financial Intelligence">
 <meta property="og:description" content="Upload your bank statement. Get instant AI-powered insights.">
 <meta property="og:type" content="website">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect width='180' height='180' rx='38' fill='%234f46e5'/><text x='90' y='130' font-family='Arial Black' font-size='110' font-weight='900' text-anchor='middle' fill='white'>M</text></svg>">
+<meta name="apple-mobile-web-app-title" content="Monix">
+<meta name="mobile-web-app-capable" content="yes">
 <title>Monix — Financial Intelligence</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -622,9 +626,137 @@ body {
   transition:color .15s;
 }
 .demo-dismiss:hover { color:#fff; }
+
+/* ── PWA Install Banner ── */
+#pwaInstallBanner {
+  display:none;
+  position:fixed;bottom:calc(var(--nav-h) + var(--safe-bottom) + 12px);
+  left:50%;transform:translateX(-50%);
+  z-index:90;
+  background:var(--ink);color:#fff;
+  border-radius:14px;
+  padding:12px 16px;
+  box-shadow:var(--sh-lg);
+  align-items:center;gap:12px;
+  max-width:340px;width:calc(100% - 32px);
+  animation:slideUp .3s cubic-bezier(.16,1,.3,1);
+}
+#pwaInstallBanner.show { display:flex; }
+@keyframes slideUp { from{opacity:0;transform:translateX(-50%) translateY(12px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+.pwa-icon {
+  width:38px;height:38px;border-radius:10px;flex-shrink:0;
+  background:linear-gradient(135deg,#4f46e5,#7c3aed);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Syne',sans-serif;font-weight:800;font-size:20px;color:#fff;
+}
+.pwa-install-btn {
+  background:#4f46e5;color:#fff;border:none;cursor:pointer;
+  padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;
+  font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0;
+  transition:background .15s;
+}
+.pwa-install-btn:hover { background:#4338ca; }
+.pwa-dismiss {
+  background:none;border:none;color:rgba(255,255,255,.5);
+  cursor:pointer;padding:2px 4px;font-size:18px;flex-shrink:0;
+  transition:color .15s;margin-left:auto;
+}
+.pwa-dismiss:hover { color:#fff; }
+[data-theme="dark"] #pwaInstallBanner { background:#26263a;border:1px solid var(--border-s); }
 </style>
 </head>
 <body>
+
+
+<!-- ══ NUKE SCREEN ══ -->
+<div id="nukeScreen">
+  <div class="nuke-icon">🔒</div>
+  <h2 class="nuke-title">Data Cleared for Security</h2>
+  <p class="nuke-desc">All your financial data has been permanently deleted because all security questions were answered incorrectly.</p>
+  <div class="nuke-timer" id="nukeTimer">5</div>
+</div>
+
+<!-- ══ PIN SCREEN ══ -->
+<div id="pinScreen">
+
+  <!-- Entry mode -->
+  <div id="pinEntryMode" style="display:flex;flex-direction:column;align-items:center;width:100%;max-width:340px;">
+    <div class="pin-logo">M</div>
+    <h2 class="pin-title">Welcome Back</h2>
+    <p class="pin-subtitle">Enter your 4-digit PIN to access your finances</p>
+    <div class="pin-dots">
+      <div class="pin-dot" id="d0"></div><div class="pin-dot" id="d1"></div>
+      <div class="pin-dot" id="d2"></div><div class="pin-dot" id="d3"></div>
+    </div>
+    <p class="pin-warning" id="pinWarning"></p>
+    <div class="pin-pad">
+      <button class="pin-key" onclick="pinKey('1')">1</button>
+      <button class="pin-key" onclick="pinKey('2')">2</button>
+      <button class="pin-key" onclick="pinKey('3')">3</button>
+      <button class="pin-key" onclick="pinKey('4')">4</button>
+      <button class="pin-key" onclick="pinKey('5')">5</button>
+      <button class="pin-key" onclick="pinKey('6')">6</button>
+      <button class="pin-key" onclick="pinKey('7')">7</button>
+      <button class="pin-key" onclick="pinKey('8')">8</button>
+      <button class="pin-key" onclick="pinKey('9')">9</button>
+      <div class="pin-key empty"></div>
+      <button class="pin-key" onclick="pinKey('0')">0</button>
+      <button class="pin-key del" onclick="pinDel()">⌫</button>
+    </div>
+    <button class="pin-forgot" onclick="showSecurityQuestions()">Forgot PIN?</button>
+  </div>
+
+  <!-- Security questions mode -->
+  <div id="pinQMode" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:400px;">
+    <div class="pin-logo" style="background:linear-gradient(135deg,#d97706,#b45309);">?</div>
+    <h2 class="pin-title">Security Check</h2>
+    <p class="pin-subtitle">Answer at least 2 out of 3 correctly to reset your PIN</p>
+    <div id="pinQPanel" style="width:100%;display:flex;flex-direction:column;gap:12px;margin-bottom:20px;"></div>
+    <button onclick="checkSecurityAnswers()" class="btn btn-primary" style="width:100%;padding:13px;font-size:15px;background:#4f46e5;">Verify Answers</button>
+    <button onclick="cancelSecurityCheck()" class="pin-forgot" style="margin-top:10px;">Back to PIN</button>
+  </div>
+
+  <!-- Setup mode -->
+  <div id="pinSetupPanel" style="display:none;flex-direction:column;align-items:center;width:100%;max-width:380px;">
+    <!-- Step 1: create PIN -->
+    <div id="pinSetupStep1" style="display:flex;flex-direction:column;align-items:center;width:100%;">
+      <div class="pin-logo">M</div>
+      <p class="pin-setup-step" id="setupStepLabel">Step 1 of 2 — Create PIN</p>
+      <h2 class="pin-title" id="setupTitle">Set Your PIN</h2>
+      <p class="pin-subtitle" id="setupSubtitle">Choose a 4-digit PIN to protect your financial data</p>
+      <div class="pin-dots">
+        <div class="pin-dot" id="sd0"></div><div class="pin-dot" id="sd1"></div>
+        <div class="pin-dot" id="sd2"></div><div class="pin-dot" id="sd3"></div>
+      </div>
+      <p class="pin-warning" id="setupWarning"></p>
+      <div class="pin-pad">
+        <button class="pin-key" onclick="setupKey('1')">1</button>
+        <button class="pin-key" onclick="setupKey('2')">2</button>
+        <button class="pin-key" onclick="setupKey('3')">3</button>
+        <button class="pin-key" onclick="setupKey('4')">4</button>
+        <button class="pin-key" onclick="setupKey('5')">5</button>
+        <button class="pin-key" onclick="setupKey('6')">6</button>
+        <button class="pin-key" onclick="setupKey('7')">7</button>
+        <button class="pin-key" onclick="setupKey('8')">8</button>
+        <button class="pin-key" onclick="setupKey('9')">9</button>
+        <div class="pin-key empty"></div>
+        <button class="pin-key" onclick="setupKey('0')">0</button>
+        <button class="pin-key del" onclick="setupDel()">⌫</button>
+      </div>
+    </div>
+    <!-- Step 2: security questions -->
+    <div id="pinSetupStep2" style="display:none;width:100%;">
+      <p class="pin-setup-step" style="text-align:center;">Step 2 of 2 — Security Questions</p>
+      <h2 class="pin-title" style="text-align:center;margin-bottom:6px;">Set Recovery Questions</h2>
+      <p class="pin-subtitle" style="text-align:center;margin-bottom:20px;">Answer these if you ever forget your PIN</p>
+      <div id="setupQList" style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;"></div>
+      <button onclick="saveSetup()" class="btn btn-primary" style="width:100%;padding:13px;font-size:15px;background:#4f46e5;">
+        <i class="fas fa-check"></i> Save & Open Monix
+      </button>
+    </div>
+  </div>
+
+</div><!-- /PIN SCREEN -->
 
 
 <!-- ══════════════════════════════════════
@@ -711,6 +843,18 @@ body {
 
 <div id="loadingOverlay"><div class="spinner"></div><p class="loading-text" id="loadingText">Loading...</p></div>
 <div id="toast"><i id="toastIcon" class="fas fa-info-circle"></i><span id="toastMsg"></span></div>
+
+<!-- ── PWA Install Banner ── -->
+<div id="pwaInstallBanner">
+  <div class="pwa-icon">M</div>
+  <div style="flex:1;min-width:0;">
+    <p style="font-size:13px;font-weight:600;color:#fff;margin-bottom:1px;">Add Monix to Home Screen</p>
+    <p style="font-size:11px;color:rgba(255,255,255,.55);">Access instantly, like a native app</p>
+  </div>
+  <button class="pwa-install-btn" onclick="pwaTriggerInstall()">Install</button>
+  <button class="pwa-dismiss" onclick="pwaDismiss()">✕</button>
+</div>
+
 <input type="file" id="pdfFile" style="display:none" accept=".pdf" onchange="onFileSelected()">
 
 <!-- ── Bottom Nav ── -->
@@ -951,9 +1095,22 @@ body {
       <div id="ledgerEmpty" style="display:none;padding:36px;text-align:center;color:var(--muted);font-size:13px;">No transactions match your filters.</div>
       <div style="padding:10px 16px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
         <span id="txCountLabel" style="font-size:12px;color:var(--muted);"></span>
-        <button onclick="exportCSV()" class="btn btn-ghost" style="padding:7px 13px;font-size:12px;">
-          <i class="fas fa-download"></i> Export CSV
-        </button>
+        <div style="position:relative;display:inline-block;" id="exportDropdownWrap">
+          <button onclick="toggleExportMenu()" class="btn btn-ghost" style="padding:7px 13px;font-size:12px;">
+            <i class="fas fa-download"></i> Export CSV <i class="fas fa-chevron-up" id="exportChevron" style="font-size:9px;margin-left:2px;"></i>
+          </button>
+          <div id="exportMenu" style="display:none;position:absolute;bottom:calc(100% + 6px);right:0;
+            background:var(--surface);border:1px solid var(--border-s);border-radius:var(--r-sm);
+            box-shadow:var(--sh-lg);min-width:200px;overflow:hidden;z-index:50;">
+            <div style="padding:8px 6px;">
+              <p style="font-size:10px;font-weight:600;letter-spacing:.06em;color:var(--muted);text-transform:uppercase;padding:4px 10px 6px;">Download</p>
+              <button onclick="exportCSV('all')" style="width:100%;display:flex;align-items:center;gap:8px;padding:8px 10px;background:none;border:none;cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--ink);text-align:left;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">
+                <i class="fas fa-table" style="color:var(--muted);font-size:12px;width:14px;"></i> All transactions
+              </button>
+              <div id="exportMonthList" style="display:flex;flex-direction:column;gap:1px;max-height:200px;overflow-y:auto;"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -1104,7 +1261,10 @@ body {
             <p style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;">Session</p>
             <p style="font-size:12px;color:var(--muted);">Logged in securely.</p>
           </div>
-          <button onclick="logoutUser()" class="btn btn-danger" style="font-size:13px;white-space:nowrap;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          <div style="display:flex;gap:8px;">
+            <button onclick="lockApp()" class="btn btn-ghost" style="font-size:13px;white-space:nowrap;"><i class="fas fa-lock"></i> Lock</button>
+            <button onclick="logoutUser()" class="btn btn-danger" style="font-size:13px;white-space:nowrap;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+          </div>
         </div>
       </div>
 
@@ -1204,10 +1364,12 @@ const DEMO_TX = [
 // ── Auth state ────────────────────────────────────────────
 auth.onAuthStateChanged(user => {
   if (user) {
-    show('navDock','flex'); hide('loginSection');
+    hide('loginSection');
     document.getElementById('profileEmailDisplay').textContent = user.email;
-    loadProfile(); fetchHistory();
+    loadProfile();
+    pinGate(user.uid); // PIN gate before showing app
   } else {
+    pinLock();
     hide('navDock'); hide('mainApp'); hide('emptyState'); show('loginSection');
   }
 });
@@ -1244,7 +1406,10 @@ function authErr(code) {
   })[code] || 'Auth failed. Try again.';
 }
 
-function logoutUser() { auth.signOut().then(() => toast('Signed out','info')); }
+function logoutUser() {
+  pinLock();
+  auth.signOut().then(() => toast('Signed out','info'));
+}
 
 // ── Profile ───────────────────────────────────────────────
 async function loadProfile() {
@@ -1343,6 +1508,19 @@ async function fetchHistory() {
 }
 
 // ── View switching ────────────────────────────────────────
+
+// ── Clear History ─────────────────────────────────────────
+async function clearHistory() {
+  if (!auth.currentUser) return;
+  if (!confirm('Delete ALL your financial data? This cannot be undone.')) return;
+  try {
+    await db.collection('users').doc(auth.currentUser.uid).delete();
+    allTx=[]; globalTx=[]; predCache=null;
+    loadDemoData(); // show demo after wipe, PIN stays intact
+    toast('Data deleted — showing demo','info');
+  } catch { toast('Delete failed. Please try again.','error'); }
+}
+
 function switchView(name) {
   // Remove skeleton — data (real or demo) is always ready by now
   $('skeletonDash').classList.remove('show');
@@ -1510,13 +1688,80 @@ function renderTable(txns) {
   });
 }
 
-function exportCSV() {
-  const rows=[['Date','Description','Category','Amount (INR)']];
-  globalTx.forEach(t=>rows.push([t.date||'',`"${(t.description||'').replace(/"/g,'""')}"`,t.category||'',t.amount||0]));
-  const blob=new Blob([rows.map(r=>r.join(',')).join('\n')],{type:'text/csv'});
-  const a=document.createElement('a'); a.href=URL.createObjectURL(blob);
-  a.download=`monix-${Date.now()}.csv`; a.click(); URL.revokeObjectURL(a.href);
-  toast('CSV downloaded','success');
+// ── Export CSV ────────────────────────────────────────────
+let _exportMenuOpen = false;
+
+function toggleExportMenu() {
+  _exportMenuOpen = !_exportMenuOpen;
+  const menu = document.getElementById('exportMenu');
+  const chev = document.getElementById('exportChevron');
+  menu.style.display = _exportMenuOpen ? 'block' : 'none';
+  chev.className = _exportMenuOpen ? 'fas fa-chevron-down' : 'fas fa-chevron-up';
+  chev.style.fontSize = '9px'; chev.style.marginLeft = '2px';
+  if (_exportMenuOpen) buildExportMonthList();
+  // Close on outside click
+  if (_exportMenuOpen) {
+    setTimeout(() => document.addEventListener('click', closeExportMenu, { once:true }), 10);
+  }
+}
+
+function closeExportMenu(e) {
+  const wrap = document.getElementById('exportDropdownWrap');
+  if (wrap && !wrap.contains(e.target)) {
+    document.getElementById('exportMenu').style.display = 'none';
+    const chev = document.getElementById('exportChevron');
+    if (chev) { chev.className = 'fas fa-chevron-up'; chev.style.fontSize='9px'; chev.style.marginLeft='2px'; }
+    _exportMenuOpen = false;
+  }
+}
+
+function buildExportMonthList() {
+  const list = document.getElementById('exportMonthList');
+  list.innerHTML = '';
+  const months = new Map();
+  globalTx.forEach(t => {
+    if (!t.date) return;
+    const d = new Date(t.date); if (isNaN(d)) return;
+    const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    if (!months.has(key)) months.set(key, d.toLocaleDateString('en-IN',{month:'long',year:'numeric'}));
+  });
+  if (!months.size) {
+    list.innerHTML = `<p style="font-size:11px;color:var(--muted);padding:4px 10px;">No months available</p>`;
+    return;
+  }
+  [...months.entries()].sort((a,b) => b[0].localeCompare(a[0])).forEach(([key, label]) => {
+    const count = globalTx.filter(t => t.date && t.date.startsWith(key)).length;
+    list.innerHTML += `<button onclick="exportCSV('${key}')" style="width:100%;display:flex;align-items:center;justify-content:space-between;padding:8px 10px;background:none;border:none;cursor:pointer;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;color:var(--ink);text-align:left;" onmouseover="this.style.background='var(--surface-2)'" onmouseout="this.style.background='none'">
+      <span style="display:flex;align-items:center;gap:8px;"><i class="fas fa-calendar-alt" style="color:var(--muted);font-size:12px;width:14px;"></i>${label}</span>
+      <span style="font-size:10px;color:var(--muted);background:var(--surface-3);padding:2px 7px;border-radius:100px;">${count}</span>
+    </button>`;
+  });
+}
+
+function exportCSV(filter = 'all') {
+  let txns = globalTx;
+  let filename = 'monix-all';
+  if (filter !== 'all') {
+    txns = globalTx.filter(t => t.date && t.date.startsWith(filter));
+    const d = new Date(filter + '-01');
+    filename = 'monix-' + d.toLocaleDateString('en-IN',{month:'short',year:'numeric'}).replace(' ','-').toLowerCase();
+  }
+  if (!txns.length) return toast('No transactions for this period', 'info');
+  const rows = [['Date','Description','Category','Amount (INR)']];
+  txns.forEach(t => rows.push([
+    t.date||'',
+    `"${(t.description||'').replace(/"/g,'""')}"`,
+    t.category||'',
+    t.amount||0
+  ]));
+  const blob = new Blob([rows.map(r=>r.join(',')).join('\n')], {type:'text/csv'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${filename}.csv`;
+  a.click(); URL.revokeObjectURL(a.href);
+  document.getElementById('exportMenu').style.display = 'none';
+  _exportMenuOpen = false;
+  toast(`CSV downloaded (${txns.length} transactions)`, 'success');
 }
 
 // ── Predictions ───────────────────────────────────────────
@@ -1723,6 +1968,393 @@ function toggleDarkMode() {
   const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   applyTheme(saved !== null ? saved === '1' : prefersDark);
 })();
+
+
+// ── PWA Install ───────────────────────────────────────────
+let _pwaPrompt = null;
+const PWA_DISMISS_KEY = 'monix_pwa_dismissed';
+
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  _pwaPrompt = e;
+  // Only show if not dismissed before
+  if (!localStorage.getItem(PWA_DISMISS_KEY)) {
+    setTimeout(() => {
+      const banner = document.getElementById('pwaInstallBanner');
+      if (banner) banner.classList.add('show');
+    }, 3000); // show after 3s so it doesn't interrupt login
+  }
+});
+
+function pwaTriggerInstall() {
+  if (!_pwaPrompt) return;
+  _pwaPrompt.prompt();
+  _pwaPrompt.userChoice.then(choice => {
+    if (choice.outcome === 'accepted') toast('Monix added to home screen!','success');
+    document.getElementById('pwaInstallBanner').classList.remove('show');
+    _pwaPrompt = null;
+  });
+}
+
+function pwaDismiss() {
+  localStorage.setItem(PWA_DISMISS_KEY, '1');
+  document.getElementById('pwaInstallBanner').classList.remove('show');
+}
+
+// iOS Safari — no beforeinstallprompt, show manual instructions
+(function() {
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isInStandalone = window.navigator.standalone === true;
+  const dismissed = localStorage.getItem(PWA_DISMISS_KEY);
+  if (isIOS && !isInStandalone && !dismissed) {
+    setTimeout(() => {
+      const banner = document.getElementById('pwaInstallBanner');
+      if (!banner) return;
+      banner.querySelector('.pwa-install-btn').textContent = 'How to Install';
+      banner.querySelector('.pwa-install-btn').onclick = () => {
+        toast('Tap the Share button → "Add to Home Screen"','info');
+        setTimeout(() => banner.classList.remove('show'), 4000);
+      };
+      banner.classList.add('show');
+    }, 3000);
+  }
+})();
+
+
+// ══════════════════════════════════════════════════════════
+// PIN LOCK SYSTEM — Full JS Engine
+// ══════════════════════════════════════════════════════════
+
+const PIN_KEY      = uid => 'monix_pin_'  + uid;
+const PIN_Q_KEY    = uid => 'monix_pinq_' + uid;
+const PIN_SESS_KEY = uid => 'monix_pinsess_' + uid;
+
+const SECURITY_QUESTIONS = [
+  "What is your favourite food?",
+  "Name of your first pet?",
+  "What is your mother's maiden name?",
+  "What was the name of your first school?",
+  "What is your favourite movie?",
+  "What city were you born in?",
+  "What is your favourite sports team?",
+  "What was your childhood nickname?"
+];
+
+let _pinUid     = null;
+let _pinEntry   = '';
+let _setupEntry = '';
+let _setupFirst = '';
+let _setupPhase = 'first';
+let _pinAttempts = 0;
+let _autoLockTimer = null;
+const MAX_ATTEMPTS = 3;
+
+// ── SHA-256 ───────────────────────────────────────────────
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str.toLowerCase().trim()));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── PIN Gate — called right after Firebase login ──────────
+async function pinGate(uid) {
+  _pinUid = uid;
+  const stored    = localStorage.getItem(PIN_KEY(uid));
+  const sessionOk = sessionStorage.getItem(PIN_SESS_KEY(uid));
+  if (sessionOk === '1') { pinUnlock(); return; }
+  if (!stored) { showPinSetup(); } else { showPinEntry(); }
+}
+
+// ── Show entry screen ─────────────────────────────────────
+function showPinEntry() {
+  _pinEntry = ''; _pinAttempts = 0;
+  document.getElementById('pinSetupPanel').style.display = 'none';
+  document.getElementById('pinQMode').style.display      = 'none';
+  document.getElementById('pinEntryMode').style.display  = 'flex';
+  document.getElementById('pinScreen').classList.add('show');
+  updateDots('pin'); setWarn('pinWarning','');
+}
+
+// ── Show setup screen ─────────────────────────────────────
+function showPinSetup() {
+  _setupEntry = ''; _setupFirst = ''; _setupPhase = 'first';
+  document.getElementById('pinEntryMode').style.display  = 'none';
+  document.getElementById('pinQMode').style.display      = 'none';
+  document.getElementById('pinSetupPanel').style.display = 'flex';
+  document.getElementById('pinSetupStep1').style.display = 'flex';
+  document.getElementById('pinSetupStep2').style.display = 'none';
+  document.getElementById('pinScreen').classList.add('show');
+  document.getElementById('setupStepLabel').textContent = 'Step 1 of 2 — Create PIN';
+  document.getElementById('setupTitle').textContent     = 'Set Your PIN';
+  document.getElementById('setupSubtitle').textContent  = 'Choose a 4-digit PIN to protect your financial data';
+  updateDots('setup'); setWarn('setupWarning','');
+}
+
+// ── Entry numpad ──────────────────────────────────────────
+function pinKey(n) {
+  if (_pinEntry.length >= 4) return;
+  _pinEntry += n;
+  updateDots('pin');
+  if (navigator.vibrate) navigator.vibrate(10);
+  if (_pinEntry.length === 4) setTimeout(submitPin, 120);
+}
+function pinDel() { _pinEntry = _pinEntry.slice(0,-1); updateDots('pin'); }
+
+async function submitPin() {
+  const stored = localStorage.getItem(PIN_KEY(_pinUid));
+  const hash   = await sha256(_pinEntry);
+  if (hash === stored) {
+    sessionStorage.setItem(PIN_SESS_KEY(_pinUid), '1');
+    document.getElementById('pinScreen').classList.remove('show');
+    startAutoLock(); fetchHistory(); show('navDock','flex');
+  } else {
+    _pinAttempts++;
+    _pinEntry = '';
+    shakeDots('pin');
+    if (navigator.vibrate) navigator.vibrate([40,20,40]);
+    const left = MAX_ATTEMPTS - _pinAttempts;
+    if (_pinAttempts >= MAX_ATTEMPTS) {
+      setWarn('pinWarning','Too many attempts. Answer your security questions.');
+      setTimeout(showSecurityQuestions, 900);
+    } else {
+      setWarn('pinWarning', 'Wrong PIN — ' + left + ' attempt' + (left===1?'':'s') + ' left');
+      updateDots('pin');
+    }
+  }
+}
+
+// ── Setup numpad ──────────────────────────────────────────
+function setupKey(n) {
+  if (_setupEntry.length >= 4) return;
+  _setupEntry += n;
+  updateDots('setup');
+  if (navigator.vibrate) navigator.vibrate(10);
+  if (_setupEntry.length === 4) setTimeout(handleSetupPin, 120);
+}
+function setupDel() { _setupEntry = _setupEntry.slice(0,-1); updateDots('setup'); }
+
+function handleSetupPin() {
+  if (_setupPhase === 'first') {
+    _setupFirst = _setupEntry; _setupEntry = ''; _setupPhase = 'confirm';
+    document.getElementById('setupStepLabel').textContent = 'Step 1 of 2 — Confirm PIN';
+    document.getElementById('setupTitle').textContent     = 'Confirm Your PIN';
+    document.getElementById('setupSubtitle').textContent  = 'Enter the same PIN again to confirm';
+    updateDots('setup'); setWarn('setupWarning','');
+  } else {
+    if (_setupEntry !== _setupFirst) {
+      _setupEntry = ''; _setupFirst = ''; _setupPhase = 'first';
+      shakeDots('setup');
+      document.getElementById('setupStepLabel').textContent = 'Step 1 of 2 — Create PIN';
+      document.getElementById('setupTitle').textContent     = 'Set Your PIN';
+      document.getElementById('setupSubtitle').textContent  = "PINs didn't match — try again";
+      updateDots('setup');
+      setWarn('setupWarning',"PINs did not match. Start again.");
+      return;
+    }
+    // Confirmed — go to security questions
+    document.getElementById('pinSetupStep1').style.display = 'none';
+    document.getElementById('pinSetupStep2').style.display = 'block';
+    buildSetupQuestions();
+  }
+}
+
+function buildSetupQuestions() {
+  const list   = document.getElementById('setupQList');
+  const picked = [...SECURITY_QUESTIONS].sort(() => Math.random()-.5).slice(0,3);
+  list.innerHTML = picked.map((q,i) => `
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <label style="font-size:11px;font-weight:600;color:rgba(255,255,255,.5);letter-spacing:.05em;text-transform:uppercase;">Question ${i+1}</label>
+      <select class="pin-q-setup-sel" data-idx="${i}" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.15);border-radius:9px;padding:10px 13px;font-family:'DM Sans',sans-serif;font-size:13px;color:#fff;outline:none;cursor:pointer;-webkit-appearance:none;">
+        ${SECURITY_QUESTIONS.map(sq => '<option value="'+sq+'"'+(sq===q?' selected':'')+' style="background:#1e1e2a;color:#fff;">'+sq+'</option>').join('')}
+      </select>
+      <input type="text" class="pin-q-input pin-q-answer" data-idx="${i}" placeholder="Your answer…" autocomplete="off">
+    </div>`).join('');
+}
+
+async function saveSetup() {
+  const answers = document.querySelectorAll('.pin-q-answer');
+  const selects = document.querySelectorAll('.pin-q-setup-sel');
+  const qaList  = [];
+  let valid = true;
+  for (let i = 0; i < answers.length; i++) {
+    const ans = answers[i].value.trim();
+    if (!ans) { answers[i].style.borderColor='#f87171'; valid=false; continue; }
+    answers[i].style.borderColor = '';
+    qaList.push({ q: selects[i].value, a: await sha256(ans) });
+  }
+  if (!valid) { toast('Please answer all 3 questions','error'); return; }
+  const pinHash = await sha256(_setupFirst);
+  localStorage.setItem(PIN_KEY(_pinUid), pinHash);
+  localStorage.setItem(PIN_Q_KEY(_pinUid), JSON.stringify(qaList));
+  sessionStorage.setItem(PIN_SESS_KEY(_pinUid), '1');
+  document.getElementById('pinScreen').classList.remove('show');
+  document.getElementById('pinSetupPanel').style.display = 'none';
+  startAutoLock(); fetchHistory(); show('navDock','flex');
+  toast('PIN set! Your finances are protected 🔒','success');
+}
+
+// ── Forgot PIN — security questions ──────────────────────
+function showSecurityQuestions() {
+  const qaList = JSON.parse(localStorage.getItem(PIN_Q_KEY(_pinUid)) || '[]');
+  if (!qaList.length) { toast('No security questions set.','error'); return; }
+  document.getElementById('pinEntryMode').style.display = 'none';
+  document.getElementById('pinQMode').style.display     = 'flex';
+  document.getElementById('pinQPanel').innerHTML = qaList.map((item,i) => `
+    <div class="pin-q-item">
+      <p class="pin-q-label">Question ${i+1}</p>
+      <p class="pin-q-text">${item.q}</p>
+      <input type="text" class="pin-q-input pin-recovery-ans" data-idx="${i}" placeholder="Your answer…" autocomplete="off">
+    </div>`).join('');
+}
+
+function cancelSecurityCheck() {
+  document.getElementById('pinQMode').style.display     = 'none';
+  document.getElementById('pinEntryMode').style.display = 'flex';
+  _pinEntry = ''; updateDots('pin'); setWarn('pinWarning','');
+}
+
+async function checkSecurityAnswers() {
+  const qaList = JSON.parse(localStorage.getItem(PIN_Q_KEY(_pinUid)) || '[]');
+  const inputs = document.querySelectorAll('.pin-recovery-ans');
+  let correct  = 0;
+  for (let i = 0; i < inputs.length; i++) {
+    const hash = await sha256(inputs[i].value);
+    if (hash === qaList[i].a) { correct++; inputs[i].style.borderColor='#34d399'; }
+    else                        { inputs[i].style.borderColor='#f87171'; }
+  }
+  if (correct >= 2) {
+    toast(correct + '/3 correct — set a new PIN','success');
+    setTimeout(() => {
+      document.getElementById('pinQMode').style.display = 'none';
+      localStorage.removeItem(PIN_KEY(_pinUid));
+      showPinSetup();
+    }, 800);
+  } else {
+    toast('All answers wrong — wiping data for security','error');
+    setTimeout(nuclearWipe, 1200);
+  }
+}
+
+// ── Nuclear wipe ──────────────────────────────────────────
+async function nuclearWipe() {
+  try { if (auth.currentUser) await db.collection('users').doc(auth.currentUser.uid).delete(); } catch {}
+  localStorage.removeItem(PIN_KEY(_pinUid));
+  localStorage.removeItem(PIN_Q_KEY(_pinUid));
+  sessionStorage.removeItem(PIN_SESS_KEY(_pinUid));
+  allTx=[]; globalTx=[]; predCache=null;
+  document.getElementById('pinScreen').classList.remove('show');
+  document.getElementById('nukeScreen').classList.add('show');
+  let count = 5;
+  document.getElementById('nukeTimer').textContent = count;
+  const iv = setInterval(() => {
+    count--;
+    document.getElementById('nukeTimer').textContent = count;
+    if (count <= 0) {
+      clearInterval(iv);
+      document.getElementById('nukeScreen').classList.remove('show');
+      showPinSetup();
+      loadDemoData();
+      show('navDock','flex');
+    }
+  }, 1000);
+}
+
+// ── Demo data ─────────────────────────────────────────────
+function loadDemoData() {
+  const today = new Date();
+  const m  = d => { const dt=new Date(today); dt.setDate(dt.getDate()-d); return dt.toISOString().slice(0,10); };
+  allTx = [
+    {date:m(60),description:'Opening Balance',amount:25000,category:'Other'},
+    {date:m(58),description:'Salary Credit HDFC',amount:65000,category:'Salary'},
+    {date:m(55),description:'Zomato Order',amount:-349,category:'Food & Dining'},
+    {date:m(52),description:'Netflix Subscription',amount:-649,category:'Entertainment'},
+    {date:m(50),description:'Swiggy Order',amount:-280,category:'Food & Dining'},
+    {date:m(47),description:'Uber Ride',amount:-220,category:'Auto & Transport'},
+    {date:m(45),description:'BESCOM Electricity Bill',amount:-1850,category:'Utilities'},
+    {date:m(43),description:'Blinkit Groceries',amount:-1240,category:'Groceries'},
+    {date:m(40),description:'Amazon Shopping',amount:-2399,category:'Shopping'},
+    {date:m(38),description:'Spotify Premium',amount:-119,category:'Entertainment'},
+    {date:m(35),description:'Airtel Broadband',amount:-999,category:'Utilities'},
+    {date:m(32),description:'Gym Membership',amount:-1500,category:'Entertainment'},
+    {date:m(30),description:'Salary Credit HDFC',amount:65000,category:'Salary'},
+    {date:m(28),description:'Zomato Order',amount:-420,category:'Food & Dining'},
+    {date:m(25),description:'Swiggy Instamart',amount:-890,category:'Groceries'},
+    {date:m(22),description:'Ola Ride',amount:-180,category:'Auto & Transport'},
+    {date:m(20),description:'Netflix Subscription',amount:-649,category:'Entertainment'},
+    {date:m(18),description:'D-Mart Groceries',amount:-2100,category:'Groceries'},
+    {date:m(15),description:'Flipkart Order',amount:-1599,category:'Shopping'},
+    {date:m(12),description:'BESCOM Electricity Bill',amount:-1920,category:'Utilities'},
+    {date:m(10),description:'Airtel Broadband',amount:-999,category:'Utilities'},
+    {date:m(8), description:'Spotify Premium',amount:-119,category:'Entertainment'},
+    {date:m(5), description:'Gym Membership',amount:-1500,category:'Entertainment'},
+    {date:m(3), description:'Uber Eats Order',amount:-310,category:'Food & Dining'},
+    {date:m(1), description:'ATM Withdrawal',amount:-3000,category:'Other'},
+  ];
+  predCache = null;
+  renderData(allTx);
+  switchView('dash');
+  // Show demo banner
+  const b = document.getElementById('demoBanner');
+  if (b) b.style.display = 'flex';
+}
+
+// ── Auto lock ─────────────────────────────────────────────
+function startAutoLock() {
+  clearTimeout(_autoLockTimer);
+  _autoLockTimer = setTimeout(lockApp, 2 * 60 * 1000);
+  ['click','keydown','touchstart','scroll'].forEach(ev =>
+    document.addEventListener(ev, resetAutoLock, { passive:true }));
+}
+function resetAutoLock() {
+  clearTimeout(_autoLockTimer);
+  _autoLockTimer = setTimeout(lockApp, 2 * 60 * 1000);
+}
+function lockApp() {
+  if (!_pinUid) return;
+  sessionStorage.removeItem(PIN_SESS_KEY(_pinUid));
+  clearTimeout(_autoLockTimer);
+  hide('navDock'); hide('mainApp'); hide('emptyState');
+  showPinEntry();
+}
+function pinLock() {
+  if (_pinUid) sessionStorage.removeItem(PIN_SESS_KEY(_pinUid));
+  const ps = document.getElementById('pinScreen');
+  const ns = document.getElementById('nukeScreen');
+  if (ps) ps.classList.remove('show');
+  if (ns) ns.classList.remove('show');
+  clearTimeout(_autoLockTimer);
+}
+function pinUnlock() {
+  document.getElementById('pinScreen').classList.remove('show');
+  startAutoLock(); fetchHistory(); show('navDock','flex');
+}
+
+// ── Dot helpers ───────────────────────────────────────────
+function updateDots(mode) {
+  const val = mode==='pin' ? _pinEntry : _setupEntry;
+  const pre = mode==='pin' ? 'd' : 'sd';
+  for (let i=0;i<4;i++) {
+    const d = document.getElementById(pre+i);
+    if (!d) continue;
+    d.classList.toggle('filled', i < val.length);
+    d.classList.remove('error');
+  }
+}
+function shakeDots(mode) {
+  const pre = mode==='pin'?'d':'sd';
+  for (let i=0;i<4;i++) {
+    const d=document.getElementById(pre+i);
+    if(d){d.classList.remove('filled');d.classList.add('error');}
+  }
+  setTimeout(()=>{
+    for(let i=0;i<4;i++){const d=document.getElementById(pre+i);if(d)d.classList.remove('error');}
+  },600);
+}
+function setWarn(id,msg) {
+  const el=document.getElementById(id);
+  if(!el) return;
+  el.textContent=msg;
+  el.classList.toggle('show',!!msg);
+}
 
 function hideLoad(){$('loadingOverlay').classList.remove('show');}
 </script>
